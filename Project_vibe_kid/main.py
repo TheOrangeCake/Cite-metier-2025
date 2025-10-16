@@ -57,6 +57,10 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(PROJECT_NAME)
 pygame.key.set_repeat(300, 50)
 
+label_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 28)
+input_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
+output_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
+
 done = False
 reset = True
 clock = pygame.time.Clock()
@@ -65,9 +69,6 @@ AI_response = ''
 pending = None
 parent = None
 child = None
-label_font = pygame.font.SysFont('Calibri', 18, False, False)
-input_font = pygame.font.SysFont('Calibri', 24, False, False)
-output_font = pygame.font.SysFont('Calibri', 24, False, False)
 
 draw_zone = pygame.Rect(0, 0, 1300, 800)
 zone_surface = screen.subsurface(draw_zone)
@@ -93,6 +94,14 @@ while not done:
 				user_input = user_input[:-1]
 			elif event.key == pygame.K_ESCAPE:
 				user_input = ''
+			elif event.key == pygame.K_LEFT:
+				addons_new.left_press(screen)
+			elif event.key == pygame.K_RIGHT:
+				addons_new.right_press(screen)
+			elif event.key == pygame.K_UP:
+				addons_new.up_press(screen)
+			elif event.key == pygame.K_DOWN:
+				addons_new.down_press(screen)
 			elif event.key == pygame.K_RETURN:
 				if reset == True:
 					user_input = ''
@@ -121,7 +130,8 @@ while not done:
 				if reset == True:
 					user_input = ''
 					reset = False
-				user_input += event.unicode
+				if event.unicode.isalnum() or event.unicode in " .,!?'\"-":
+					user_input += event.unicode
 				AI_response = ''
 
 	# Reap API call output
