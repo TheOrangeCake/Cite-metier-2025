@@ -1,13 +1,13 @@
 import pygame
 import importlib
 import traceback
-import sys
 from multiprocessing import Process, Pipe
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from pathlib import Path
 from addons import addons_new
 import text
+import utils
 from bot_filter import response_analizer
 import change_logger
 
@@ -16,36 +16,21 @@ HEIGHT = 1080
 PROJECT_NAME = 'Vibe Kid'
 ADDON_PATH = 'addons/addons_new.py'
 BASE_PATH = 'addons_base.py'
+SCENE1_PATH = 'addons_scene1.py'
+SCENE2_PATH = 'addons_scene2.py'
+SCENE3_PATH = 'addons_scene3.py'
+SCENE4_PATH = 'addons_scene4.py'
+SCENE5_PATH = 'addons_scene5.py'
 MAIN_PATH = 'main.py'
 
-# Clean up
-def clean_up():
-	observer.stop()
-	observer.join()
-	pygame.quit()
-	if pending is not None:
-		pending.terminate()
-		pending.join()
+main_file = utils.load(MAIN_PATH)
+addons_base = utils.load(BASE_PATH)
+addons_scene1 = utils.load(SCENE1_PATH)
+addons_scene2 = utils.load(SCENE2_PATH)
+addons_scene3 = utils.load(SCENE3_PATH)
+addons_scene4 = utils.load(SCENE4_PATH)
+addons_scene5 = utils.load(SCENE5_PATH)
 
-try:
-	with open(MAIN_PATH, 'r', encoding='utf-8') as file:
-		main_file = file.read()
-	with open(BASE_PATH, 'r', encoding='utf-8') as file:
-		addons_base = file.read()
-except Exception as e:
-	print('Base files open error')
-	sys.exit(1)
-
-def reset_addons():
-	try:
-		with open(ADDON_PATH, 'w') as file:
-			file.write(addons_base)
-	except Exception as e:
-		print('Reset base addons error')
-		clean_up()
-		sys.exit(1)
-
-# Start the watcher
 class MyHandler(FileSystemEventHandler):
 	def on_modified(self, event):
 		try:
@@ -55,7 +40,7 @@ class MyHandler(FileSystemEventHandler):
 			print('Bad AI code')
 			traceback.print_exc()
 			print('Reload base addons')
-			reset_addons()
+			utils.reset_addons(ADDON_PATH, addons_base, observer)
 
 		# Add code change display trigger here !!!!!!!!!!!!!!
 		change_logger.get_logger().on_file_modified()
@@ -87,14 +72,23 @@ output_font = pygame.font.SysFont('Calibri', 24, False, False)
 draw_zone = pygame.Rect(0, 0, 1300, 800)
 zone_surface = screen.subsurface(draw_zone)
 
-# Main loop
 while not done:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			done = True
 		elif event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_RSHIFT:
-				reset_addons()
+				utils.reset_addons(ADDON_PATH, addons_base, observer, pending)
+			elif event.key == pygame.K_F1:
+				utils.reset_addons(ADDON_PATH, addons_scene1, observer, pending)
+			elif event.key == pygame.K_F2:
+				utils.reset_addons(ADDON_PATH, addons_scene2, observer, pending)
+			elif event.key == pygame.K_F3:
+				utils.reset_addons(ADDON_PATH, addons_scene3, observer, pending)
+			elif event.key == pygame.K_F4:
+				utils.reset_addons(ADDON_PATH, addons_scene4, observer, pending)
+			elif event.key == pygame.K_F5:
+				utils.reset_addons(ADDON_PATH, addons_scene5, observer, pending)
 			elif event.key == pygame.K_BACKSPACE:
 				user_input = user_input[:-1]
 			elif event.key == pygame.K_ESCAPE:
@@ -104,7 +98,8 @@ while not done:
 					user_input = ''
 					reset = False
 					continue
-
+				
+				# Threading for API call
 				if pending is None:
 					parent, child = Pipe(duplex = False)
 					def worker(conn, user_input, main_file, addon_path):
@@ -121,6 +116,7 @@ while not done:
 					reset = True
 				else:
 					AI_response = 'Une génération est déjà en cours...'
+
 			else:
 				if reset == True:
 					user_input = ''
@@ -128,6 +124,7 @@ while not done:
 				user_input += event.unicode
 				AI_response = ''
 
+	# Reap API call output
 	if pending is not None:
 		if not pending.is_alive():
 			if parent.poll():
@@ -142,7 +139,8 @@ while not done:
 			pending.join()
 			pending = None
 
-	screen.fill((255,255,255))
+	screen.fill(addons_new.background_color)
+
 	# Custom addons for injection
 	addons_new.custom_draw(zone_surface)
 	addons_new.custom_interaction(screen)
@@ -158,4 +156,4 @@ while not done:
 	pygame.display.flip()
 	clock.tick(60)
 
-clean_up()
+utils.clean_up(observer, pending)
