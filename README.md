@@ -3,7 +3,7 @@
 - watchdog
 
 # Control
-### Preset canva
+### Preset canvas
 - `F1` -> first preset
 - `F2` -> second preset
 - `F3` -> third preset
@@ -13,4 +13,4 @@
 - `ESC` -> clear input
 - `Backspace` -> delete input
 - `Enter` -> send input to AI
-- `Right shift` -> reset canva to blank
+- `Right shift` -> reset canvas to blank
