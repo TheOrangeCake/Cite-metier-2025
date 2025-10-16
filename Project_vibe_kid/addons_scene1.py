@@ -111,6 +111,14 @@ def custom_draw(screen):
 	# Mast
 	pygame.draw.line(screen, (101, 67, 33), (630, 690), (630, 620), 3)
 
+def left_press(screen):
+	pass
+def right_press(screen):
+	pass
+def up_press(screen):
+	pass
+def down_press(screen):
+	pass
 def custom_interaction(screen):
 	pass
 #--End--
