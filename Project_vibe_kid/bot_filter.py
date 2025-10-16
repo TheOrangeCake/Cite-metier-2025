@@ -93,6 +93,7 @@ def response_analizer(prompt, main, addon_path):
                 "- Modify only what is allowed or directly related to available parameters.\n"
                 "- If the user asks for something impossible, dangerous, or unrelated, keep the code unchanged.\n"
                 "- NEVER modify or remove the main file's logic.\n"
+				"- Do not add code that might crash or exit the program \n"
                 "- Use the main file for the context, and modify the code base on that context.\n"
                 "- Imports can be adjusted only if strictly necessary and safe.\n\n"
                 "- If the user ask for animals create a similar representation using poligons."

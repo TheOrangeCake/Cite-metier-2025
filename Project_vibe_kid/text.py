@@ -1,19 +1,17 @@
 import pygame
 
-def input_zone(screen, width, height, label_font, user_input):
+def input_zone(screen, width, height, label_font, input_font, user_input):
 	zone = pygame.Rect(0, 800, 560, height - 800)
 	border_radius = 20
 	pygame.draw.rect(screen, (30,30,90), zone, border_radius = border_radius)
-	input_font = pygame.font.SysFont('Calibri', 24, False, False)
 	marge_left = zone.x + 30
 	blit_text(screen, "Entres tes modifications:", (marge_left, zone.y + 30), label_font, (255,255,255), zone.x + 530, 20)
 	blit_text(screen, user_input, (marge_left, zone.y + 60), input_font, (255,255,255), zone.x + 530, height - 710)
 
-def AI_zone(screen, width, height, label_font, AI_output):
+def AI_zone(screen, width, height, label_font, output_font, AI_output):
 	zone = pygame.Rect(570, 800, width - 570, height - 800)
 	border_radius = 20
 	pygame.draw.rect(screen, (30,30,90), zone, border_radius = border_radius)
-	output_font = pygame.font.SysFont('Calibri', 24, False, False)
 	marge_left = zone.x + 30
 	blit_text(screen, "La réponse du IA:", (marge_left, zone.y + 30), label_font, (255,255,255), width - 630, 20)
 	blit_text(screen, AI_output, (marge_left, zone.y + 60), output_font, (255,255,255), width - 630, height - 710)

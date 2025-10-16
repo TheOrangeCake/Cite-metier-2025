@@ -1,6 +1,8 @@
 import pygame
 import importlib
 import traceback
+import sys
+from multiprocessing import Process, Pipe
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from pathlib import Path
@@ -21,19 +23,19 @@ def clean_up():
 	observer.stop()
 	observer.join()
 	pygame.quit()
+	if pending is not None:
+		pending.terminate()
+		pending.join()
 
 try:
-	# Save main file to pass to AI later
 	with open(MAIN_PATH, 'r', encoding='utf-8') as file:
 		main_file = file.read()
-	# Save default addon file to reset later
 	with open(BASE_PATH, 'r', encoding='utf-8') as file:
 		addons_base = file.read()
 except Exception as e:
 	print('Base files open error')
 	sys.exit(1)
 
-# Reset addons.py to default state
 def reset_addons():
 	try:
 		with open(ADDON_PATH, 'w') as file:
@@ -45,7 +47,6 @@ def reset_addons():
 
 # Start the watcher
 class MyHandler(FileSystemEventHandler):
-	# If file is modified
 	def on_modified(self, event):
 		try:
 			importlib.reload(addons_new)
@@ -63,19 +64,28 @@ class MyHandler(FileSystemEventHandler):
 path = Path(ADDON_PATH)
 observer = Observer()
 handler = MyHandler()
-observer.schedule(handler, path, recursive=True)
+observer.schedule(handler, path, recursive=False)
 observer.start()
 
-# Start pygame
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(PROJECT_NAME)
+pygame.key.set_repeat(300, 50)
 
 done = False
+reset = True
 clock = pygame.time.Clock()
 user_input = ''
 AI_response = ''
-reset = True
+pending = None
+parent = None
+child = None
+label_font = pygame.font.SysFont('Calibri', 18, False, False)
+input_font = pygame.font.SysFont('Calibri', 24, False, False)
+output_font = pygame.font.SysFont('Calibri', 24, False, False)
+
+draw_zone = pygame.Rect(0, 0, 1300, 800)
+zone_surface = screen.subsurface(draw_zone)
 
 # Main loop
 while not done:
@@ -83,40 +93,58 @@ while not done:
 		if event.type == pygame.QUIT:
 			done = True
 		elif event.type == pygame.KEYDOWN:
-			# Reset to base game
 			if event.key == pygame.K_RSHIFT:
 				reset_addons()
-			# Manage input
 			elif event.key == pygame.K_BACKSPACE:
 				user_input = user_input[:-1]
 			elif event.key == pygame.K_ESCAPE:
 				user_input = ''
-			# Submit input
 			elif event.key == pygame.K_RETURN:
 				if reset == True:
 					user_input = ''
 					reset = False
 					continue
-				moderation = response_analizer(user_input, main_file, ADDON_PATH)
-				if isinstance(moderation, dict):
-					status = moderation.get("status", "error")
-					AI_response = moderation.get("message", "")
+
+				if pending is None:
+					parent, child = Pipe(duplex = False)
+					def worker(conn, user_input, main_file, addon_path):
+						try:
+							result = response_analizer(user_input, main_file, addon_path)
+							conn.send(result)
+						except Exception as e:
+							conn.send({"status": "error", "message": str(e)})
+						finally:
+							conn.close()
+					pending = Process(target=worker, args=(child, user_input, main_file, ADDON_PATH))
+					pending.start()
+					AI_response = 'Génération de la réponse en cours...'
+					reset = True
 				else:
-					status = "OK"
-					AI_response = moderation
-				print(AI_response)
-				reset = True
-			# Get input
+					AI_response = 'Une génération est déjà en cours...'
 			else:
 				if reset == True:
 					user_input = ''
 					reset = False
 				user_input += event.unicode
 				AI_response = ''
-	screen.fill((255,255,255))
 
+	if pending is not None:
+		if not pending.is_alive():
+			if parent.poll():
+				output = parent.recv()
+				if isinstance(output, dict):
+						status = output.get("status", "error")
+						AI_response = output.get("message", "")
+				else:
+					status = "OK"
+					AI_response = str(output)
+			parent.close()
+			pending.join()
+			pending = None
+
+	screen.fill((255,255,255))
 	# Custom addons for injection
-	addons_new.custom_draw(screen)
+	addons_new.custom_draw(zone_surface)
 	addons_new.custom_interaction(screen)
 	
 	# Code show zone
@@ -124,9 +152,8 @@ while not done:
 	change_logger.draw_changes(screen)
 
 	# Text zone
-	label_font = pygame.font.SysFont('Calibri', 18, False, False)
-	text.input_zone(screen, WIDTH, HEIGHT, label_font, user_input)
-	text.AI_zone(screen, WIDTH, HEIGHT, label_font, AI_response)
+	text.input_zone(screen, WIDTH, HEIGHT, label_font, input_font, user_input)
+	text.AI_zone(screen, WIDTH, HEIGHT, label_font, output_font, AI_response)
 
 	pygame.display.flip()
 	clock.tick(60)
