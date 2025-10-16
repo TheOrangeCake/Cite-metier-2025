@@ -99,7 +99,7 @@ def response_analizer(prompt, main, addon_path):
                 "- If the user ask for animals create a similar representation using poligons."
 
                 "Your response format must follow these two strict sections:\n"
-                "1 A short explanation (<10 lines, ≤10 words per line). Use clear sentences, each separated by a newline.\n"
+                "1 A short explanation (<5 lines, ≤50 words per line). Use clear sentences, each separated by a newline.\n"
                 "2 The modified code, enclosed between '#--Start--' and '#--End--'.\n\n"
 
                 "If there is no meaningful or valid change to apply, "
