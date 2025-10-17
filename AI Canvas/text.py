@@ -13,8 +13,8 @@ def AI_zone(screen, width, height, label_font, output_font, AI_output):
 	border_radius = 30
 	pygame.draw.rect(screen, (234,116,108), zone, border_radius = border_radius)
 	marge_left = zone.x + 30
-	blit_text(screen, "La réponse du IA:", (marge_left, zone.y + 20), label_font, (60,60,60), width - 570, 20)
-	blit_text(screen, AI_output, (marge_left, zone.y + 60), output_font, (0,0,0), width - 570, height - 710)
+	blit_text(screen, "La réponse de l'IA:", (marge_left, zone.y + 20), label_font, (60,60,60), width, 20)
+	blit_text(screen, AI_output, (marge_left, zone.y + 60), output_font, (0,0,0), width, height - 710)
 
 # https://stackoverflow.com/questions/42014195/rendering-text-with-multiple-lines-in-pygame
 def blit_text(surface, text, pos, font, color, max_width, max_height):

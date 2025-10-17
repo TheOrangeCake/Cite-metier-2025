@@ -99,7 +99,7 @@ def custom_draw(screen, state):
 
 	if state["game_over"]:
 		over_text = font.render(
-			'Game Over! Press Tab pour recommencer',
+			'Game Over! Presses Tab pour recommencer',
 			True, (255, 255, 255)
 		)
 		text_rect = over_text.get_rect(

@@ -19,11 +19,10 @@ ADDON_PATH = 'addons/addons_new.py'
 main_file = utils.load('main.py')
 scene1 = utils.load('f1_base_game.py')
 scene2 = utils.load('f2_sea_scene.py')
-scene3 = utils.load('addons_scene3.py')
-scene4 = utils.load('addons_scene4.py')
-scene5 = utils.load('addons_scene5.py')
+scene3 = utils.load('f3_rain_scene.py')
+scene4 = utils.load('f4_to_add.py')
+scene5 = utils.load('f5_to_add.py')
 scene6 = utils.load('f6_blank.py')
-
 
 class MyHandler(FileSystemEventHandler):
 	def on_modified(self, event):
@@ -93,7 +92,8 @@ while True:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			utils.clean_up(observer, pending)
-			utils.reset_addons(ADDON_PATH, scene1, observer, pending)
+			# Uncomment in production
+			# utils.reset_addons(ADDON_PATH, scene1, observer, pending) 
 			sys.exit(0)
 		elif event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_F1:
@@ -184,7 +184,6 @@ while True:
 					AI_response = str(output)
 			parent.close()
 			pending.join()
-			pending.terminate() 
 			pending = None
 
 	screen.fill(addons_new.background_color)

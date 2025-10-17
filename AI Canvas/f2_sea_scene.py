@@ -222,13 +222,13 @@ def custom_draw(screen, state):
 			pygame.draw.polygon(screen, color, points)
 
 	font = pygame.font.SysFont(None, int(state["GAME_HEIGHT"] * 0.05))
-	score_text = font.render(f'Score: {state["score"]}', True, (255, 255, 255))
+	score_text = font.render(f'Score: {state["score"]}', True, (0, 0, 0))
 	screen.blit(score_text, (20, 20))
 
 	if state["game_over"]:
 		over_text = font.render(
-			'Game Over! Press Tab pour recommencer',
-			True, (255, 255, 255)
+			'Game Over! Presses Tab pour recommencer',
+			True, (0, 0, 0)
 		)
 		text_rect = over_text.get_rect(
 			center=(state["GAME_WIDTH"] // 2, state["GAME_HEIGHT"] // 2)
