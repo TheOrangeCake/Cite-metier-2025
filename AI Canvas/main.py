@@ -42,6 +42,16 @@ def reset_game_state():
 		"GAME_HEIGHT": 0,
 	}
 
+key_handlers = {
+	pygame.K_LEFT: addons_new.left_press,
+	pygame.K_RIGHT: addons_new.right_press,
+	pygame.K_UP: addons_new.up_press,
+	pygame.K_DOWN: addons_new.down_press
+}
+runtime_err_message = "Désolé, j'ai fait des erreurs dans le code et le programme a été réinitialisé à l'état initial.\n" \
+			"L'IA n'est pas omnipotente et peut faire des erreurs. J'ai besoin d'un humain pour corriger mes erreurs.\n" \
+			"Les métiers de l'informatique ne sont pas remplaçables par l'IA."
+
 observer, addon_handler = utils.start_watchdog(ADDON_PATH)
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -79,14 +89,13 @@ while True:
 		elif event.type == pygame.KEYDOWN:
 			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6):
 				current_state = utils.handle_scene_switch(event.key, current_state, observer, pending, scenes, ADDON_PATH, reset_game_state)
-			elif event.key == pygame.K_LEFT:
-				addons_new.left_press(current_state, screen)
-			elif event.key == pygame.K_RIGHT:
-				addons_new.right_press(current_state, screen)
-			elif event.key == pygame.K_UP:
-				addons_new.up_press(current_state, screen)
-			elif event.key == pygame.K_DOWN:
-				addons_new.down_press(current_state, screen)
+			elif event.key in key_handlers:
+				try:
+					key_handlers[event.key](current_state, screen)
+				except Exception as e:
+					print("Erreur de runtime avec AI code")
+					utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+					AI_response = runtime_err_message
 			elif event.key == pygame.K_BACKSPACE:
 				user_input = user_input[:-1]
 			elif event.key == pygame.K_ESCAPE:
@@ -117,8 +126,13 @@ while True:
 	screen.fill(addons_new.background_color)
 
 	# Custom addons for injection
-	addons_new.custom_draw(zone_surface, current_state)
-	addons_new.custom_interaction(screen, current_state)
+	try:
+		addons_new.custom_draw(zone_surface, current_state)
+		addons_new.custom_interaction(screen, current_state)
+	except Exception as e:
+		print("Erreur de runtime avec AI code")
+		utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+		AI_response = runtime_err_message
 	
 	# Code show zone
 	pygame.draw.rect(screen, (0,0,0), pygame.Rect(1300, 0, WIDTH - 1300, HEIGHT))
