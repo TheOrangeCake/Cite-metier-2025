@@ -71,6 +71,17 @@ def draw_car(screen, state):
 	pygame.draw.rect(screen, (0, 0, 0), body_rect, 2)
 	pygame.draw.rect(screen, (0, 0, 0), roof_rect, 2)
 
+def point_in_triangle(px, py, x1, y1, x2, y2, x3, y3):
+	# Compute barycentric coordinates
+	denom = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+	if denom == 0:
+		return False
+	a = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / denom
+	b = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / denom
+	c = 1 - a - b
+	# Check if point is inside triangle
+	return 0 <= a <= 1 and 0 <= b <= 1 and 0 <= c <= 1
+
 def custom_draw(screen, state):
 	global raindrops, lightning_timer, lightning_duration
 	# Update screen-dependent values
@@ -92,6 +103,7 @@ def custom_draw(screen, state):
 		state["obstacle_timer"] += 1
 		if state["obstacle_timer"] >= state["obstacle_frequency"]:
 			state["obstacle_timer"] = 0
+			obstacle_type = random.choice(["triangle", "rock", "log", "cone", "barrier", "sign"])
 			height = random.choice([
 				int(state["GAME_HEIGHT"] * 0.04),
 				int(state["GAME_HEIGHT"] * 0.06)
@@ -101,9 +113,10 @@ def custom_draw(screen, state):
 				(255, 50, 50), (50, 255, 50),
 				(50, 50, 255), (255, 255, 50)
 			])
+			# Store obstacle as [x, y, width, height, color, type]
 			state["obstacles"].append([
 				state["GAME_WIDTH"], y_pos,
-				int(state["GAME_WIDTH"] * 0.03), height, color
+				int(state["GAME_WIDTH"] * 0.03), height, color, obstacle_type
 			])
 
 		# Move & collision
@@ -112,12 +125,16 @@ def custom_draw(screen, state):
 			if obs[0] < -50:
 				state["obstacles"].remove(obs)
 				state["score"] += 1
-			if (
-				state["x"] + state["width"] > obs[0]
-				and state["x"] < obs[0] + obs[2]
-				and state["y"] + state["height"] > obs[1]
-				and state["y"] < obs[1] + obs[3]
-			):
+			
+			# Collision check using bounding box
+			x, y, w, h = obs[0], obs[1], obs[2], obs[3]
+			car_left = state["x"]
+			car_right = state["x"] + state["width"]
+			car_top = state["y"]
+			car_bottom = state["y"] + state["height"]
+			
+			if (car_right > x and car_left < x + w and 
+				car_bottom > y and car_top < y + h):
 				state["game_over"] = True
 
 	# --- Drawing ---
@@ -216,7 +233,55 @@ def custom_draw(screen, state):
 
 	# Draw obstacles
 	for obs in state["obstacles"]:
-		pygame.draw.rect(screen, obs[4], obs[:4])
+		x, y, w, h, color, obs_type = obs
+		if obs_type == "triangle":
+			points = [
+				(x, y + h),      # bottom-left
+				(x + w, y + h),  # bottom-right
+				(x + w/2, y)     # top-middle
+			]
+			pygame.draw.polygon(screen, color, points)
+		elif obs_type == "rock":
+			pygame.draw.circle(screen, color, (x + w//2, y + h//2), w//2)
+		elif obs_type == "log":
+			log_rect = pygame.Rect(x, y, w, h)
+			pygame.draw.rect(screen, color, log_rect)
+		elif obs_type == "cone":
+			points = [
+				(x + w/2, y),          # top
+				(x, y + h),            # bottom-left
+				(x + w, y + h)         # bottom-right
+			]
+			pygame.draw.polygon(screen, (255, 165, 0), points)  # Orange cone
+			# Stripes
+			for i in range(1, 4):
+				strip_y = y + (h * i // 4)
+				pygame.draw.line(screen, (255, 255, 255), 
+							   (x + w*0.2, strip_y), 
+							   (x + w*0.8, strip_y), 2)
+		elif obs_type == "barrier":
+			barrier_rect = pygame.Rect(x, y, w, h)
+			pygame.draw.rect(screen, (255, 0, 0), barrier_rect)  # Red barrier
+			# White stripes
+			stripe_height = h // 3
+			for i in range(3):
+				if i % 2 == 0:
+					stripe = pygame.Rect(x, y + i * stripe_height, w, stripe_height)
+					pygame.draw.rect(screen, (255, 255, 255), stripe)
+		elif obs_type == "sign":
+			# Sign post
+			pygame.draw.rect(screen, (105, 105, 105), (x + w//2 - 2, y + h//3, 4, h*2//3))
+			# Sign board (diamond shape)
+			sign_points = [
+				(x + w//2, y),           # top
+				(x + w, y + h//3),       # right
+				(x + w//2, y + 2*h//3),  # bottom
+				(x, y + h//3)            # left
+			]
+			pygame.draw.polygon(screen, (255, 0, 0), sign_points)  # Red diamond
+			# White cross
+			pygame.draw.rect(screen, (255, 255, 255), (x + w//2 - 3, y + h//6, 6, h//3))
+			pygame.draw.rect(screen, (255, 255, 255), (x + w//4, y + h//3 - 3, w//2, 6))
 
 	# Score
 	font = pygame.font.SysFont(None, int(state["GAME_HEIGHT"] * 0.05))
