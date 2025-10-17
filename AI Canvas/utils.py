@@ -12,9 +12,14 @@ def load(path):
 
 def clean_up(observer, pending = None):
 	if pending is not None:
+		pending.join(timeout=0.1)
 		if pending.is_alive():
 			pending.terminate()
-		pending.join()
+			pending.join()
+		if parent is not None:
+			parent.close()
+		pending = None
+		parent = None
 	if observer is not None:
 		observer.stop()
 		observer.join()
