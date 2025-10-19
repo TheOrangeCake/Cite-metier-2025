@@ -44,9 +44,9 @@ def reset_addons(path, addons_base, observer, pending=None):
 def reload_addons(addons_module, addon_path, observer, fallback_scene):
 	try:
 		importlib.reload(addons_module)
+		return False
 	except Exception:
-		traceback.print_exc()
-		reset_addons(addon_path, fallback_scene, observer)
+		return True
 
 def start_ai_thread(user_input, main_file, addon_path):
 	q = Queue()

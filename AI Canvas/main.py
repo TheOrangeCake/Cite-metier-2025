@@ -51,9 +51,6 @@ key_handlers = {
 	pygame.K_UP: addons_new.up_press,
 	pygame.K_DOWN: addons_new.down_press
 }
-runtime_err_message = "Désolé, j'ai fait des erreurs dans le code et le programme a été réinitialisé à l'état initial.\n" \
-			"L'IA n'est pas omnipotente et peut faire des erreurs. J'ai besoin d'un humain pour corriger mes erreurs.\n" \
-			"Les métiers de l'informatique ne sont pas remplaçables par l'IA."
 
 observer, addon_handler = utils.start_watchdog(ADDON_PATH)
 pygame.init()
@@ -69,6 +66,7 @@ reset = True
 clock = pygame.time.Clock()
 user_input = ''
 AI_response = ''
+error_mode = False
 pending = None
 parent = None
 
@@ -79,9 +77,28 @@ zone_surface = screen.subsurface(draw_zone)
 while True:
 	if addon_handler.reload_pending:
 		addon_handler.reload_pending = False
-		utils.reload_addons(addons_new, ADDON_PATH, observer, scenes["f1"])
+		error = utils.reload_addons(addons_new, ADDON_PATH, observer, scenes["f1"])
+		if error == True:
+			print("Erreur de compilation avec AI code")
+			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+			error_mode = True
+			continue
+
 		# CHANGER POUR MISE A JOUR LE CODE CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		change_logger.get_logger().on_file_modified()
+
+	if error_mode:
+		text.error_handler(screen, label_font, HEIGHT, WIDTH)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				utils.clean_up(observer, pending)
+				sys.exit(0)
+			elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+				error_mode = False
+				current_state = reset_game_state()
+				utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+		clock.tick(30)
+		continue
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
@@ -99,7 +116,8 @@ while True:
 				except Exception as e:
 					print("Erreur de runtime avec AI code")
 					utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
-					AI_response = runtime_err_message
+					error_mode = True
+					continue
 			elif event.key == pygame.K_BACKSPACE:
 				user_input = user_input[:-1]
 			elif event.key == pygame.K_ESCAPE:
@@ -136,7 +154,8 @@ while True:
 	except Exception as e:
 		print("Erreur de runtime avec AI code")
 		utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
-		AI_response = runtime_err_message
+		error_mode = True
+		continue
 	
 	# Code show zone
 	pygame.draw.rect(screen, (0,0,0), pygame.Rect(1300, 0, WIDTH - 1300, HEIGHT))
