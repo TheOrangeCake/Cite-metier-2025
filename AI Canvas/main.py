@@ -18,7 +18,10 @@ scenes = {
 	"f3": utils.load('f3_rain_scene.py'),
 	"f4": utils.load('f4_to_add.py'),
 	"f5": utils.load('f5_to_add.py'),
-	"f6": utils.load('f6_blank.py')
+	"f6": utils.load('f6_blank.py'),
+	"f7": utils.load('f7_blank_city.py'),
+	"f8": utils.load('f8_blank_to_add.py'),
+	"f9": utils.load('f9_blank_to_add.py')
 }
 
 def reset_game_state():
@@ -84,10 +87,11 @@ while True:
 		if event.type == pygame.QUIT:
 			utils.clean_up(observer, pending)
 			## Uncomment in production
-			# utils.reset_addons(ADDON_PATH, scene1, observer, pending) 
+			# utils.reset_addons(ADDON_PATH, scene1, observer, pending)
 			sys.exit(0)
 		elif event.type == pygame.KEYDOWN:
-			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6):
+			# todo: add "draw in pygame primitive" in prompt
+			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6, pygame.K_F7, pygame.K_F8, pygame.K_F9):
 				current_state = utils.handle_scene_switch(event.key, current_state, observer, pending, scenes, ADDON_PATH, reset_game_state)
 			elif event.key in key_handlers:
 				try:
