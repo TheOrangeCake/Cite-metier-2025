@@ -44,9 +44,9 @@ def reset_addons(path, addons_base, observer, pending=None):
 def reload_addons(addons_module, addon_path, observer, fallback_scene):
 	try:
 		importlib.reload(addons_module)
+		return False
 	except Exception:
-		traceback.print_exc()
-		reset_addons(addon_path, fallback_scene, observer)
+		return True
 
 def start_ai_thread(user_input, main_file, addon_path):
 	q = Queue()
@@ -109,6 +109,18 @@ def handle_scene_switch(event_key, current_state, observer, pending, scenes, add
 		new_state = reset_game_state()
 		reset_addons(addon_path, scenes["f6"], observer, pending)
 		print("Load f6")
+	elif event_key == pygame.K_F7:
+		new_state = reset_game_state()
+		reset_addons(addon_path, scenes["f7"], observer, pending)
+		print("Load f7")
+	elif event_key == pygame.K_F8:
+		new_state = reset_game_state()
+		reset_addons(addon_path, scenes["f8"], observer, pending)
+		print("Load f8")
+	elif event_key == pygame.K_F9:
+		new_state = reset_game_state()
+		reset_addons(addon_path, scenes["f9"], observer, pending)
+		print("Load f9")
 	return new_state
 
 class Handler(FileSystemEventHandler):
