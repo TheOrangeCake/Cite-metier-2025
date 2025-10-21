@@ -10,19 +10,9 @@ WIDTH = 1920
 HEIGHT = 1080
 PROJECT_NAME = 'AI Canvas'
 ADDON_PATH = 'addons/addons_new.py'
-
 main_file = utils.load('main.py')
-scenes = {
-	"f1": utils.load('f1_base_game.py'),
-	"f2": utils.load('f2_sea_scene.py'),
-	"f3": utils.load('f3_rain_scene.py'),
-	"f4": utils.load('f4_to_add.py'),
-	"f5": utils.load('f5_to_add.py'),
-	"f6": utils.load('f6_blank.py'),
-	"f7": utils.load('f7_blank_city.py'),
-	"f8": utils.load('f8_blank_to_add.py'),
-	"f9": utils.load('f9_blank_to_add.py')
-}
+scenes = utils.set_scenes()
+robot = utils.set_images()
 
 def reset_game_state():
 	return {
@@ -65,7 +55,8 @@ output_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
 reset = True
 clock = pygame.time.Clock()
 user_input = ''
-AI_response = ''
+AI_response = 'Salut, je suis CanvaEXE.\nOn formera une belle équipe!'
+robot_state = "happy"
 error_mode = False
 pending = None
 parent = None
@@ -88,21 +79,22 @@ while True:
 		change_logger.get_logger().on_file_modified()
 
 	if error_mode:
-		text.error_handler(screen, label_font, HEIGHT, WIDTH)
+		text.error_handler(screen, label_font, HEIGHT, WIDTH, robot["warning"])
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
-				utils.clean_up(observer, pending)
+				utils.clean_up(observer, parent, pending)
 				sys.exit(0)
 			elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
 				error_mode = False
 				current_state = reset_game_state()
 				utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+				robot_state = "happy"
 		clock.tick(30)
 		continue
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
-			utils.clean_up(observer, pending)
+			utils.clean_up(observer, parent, pending)
 			## Uncomment in production
 			# utils.reset_addons(ADDON_PATH, scene1, observer, pending)
 			sys.exit(0)
@@ -131,19 +123,27 @@ while True:
 					pending, parent = utils.start_ai_thread(user_input, main_file, ADDON_PATH)
 					AI_response = 'Génération de la réponse en cours...'
 					reset = True
+					robot_state = "loading"
 				else:
 					AI_response = 'Une génération est déjà en cours...'
+					robot_state = "loading"
+					reset = False
 			else:
 				if event.unicode.isalnum() or event.unicode in " .,!?'\"-":
 					if reset == True:
 						user_input = ''
 						reset = False
 					user_input += event.unicode
-					AI_response = ''
+					AI_response = ("J'ai hâte de voir ton message!\n"
+									"Tips: Plus ton message est détaillé, plus le rendu sera juste")
 
+	# check if bad prompt to display sad robot here
 	done, result, status, pending, parent = utils.check_ai_thread(pending, parent)
 	if done:
 		AI_response = result
+		robot_state = "happy"
+		if status != "OK":
+			robot_state = "sad"
 
 	screen.fill(addons_new.background_color)
 
@@ -158,11 +158,12 @@ while True:
 		continue
 	
 	# Code show zone
-	pygame.draw.rect(screen, (0,0,0), pygame.Rect(1300, 0, WIDTH - 1300, HEIGHT))
+	pygame.draw.rect(screen, (0,0,0), pygame.Rect(1300, 0, WIDTH - 1300, 800))
 	change_logger.draw_changes(screen)
 
 	text.input_zone(screen, WIDTH, HEIGHT, label_font, input_font, user_input)
 	text.AI_zone(screen, WIDTH, HEIGHT, label_font, output_font, AI_response)
+	text.bot_zone(screen, robot, robot_state)
 
 	pygame.display.flip()
 	clock.tick(60)
