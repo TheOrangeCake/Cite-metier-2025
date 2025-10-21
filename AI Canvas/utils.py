@@ -17,7 +17,7 @@ def load(path):
 		print('Base files open error')
 		sys.exit(1)
 
-def clean_up(observer, pending = None):
+def clean_up(observer, parent = None, pending = None):
 	if pending is not None:
 		pending.join(timeout=0.1)
 		if pending.is_alive():
@@ -138,3 +138,30 @@ def start_watchdog(path):
 	observer.schedule(handler, path, recursive=False)
 	observer.start()
 	return observer, handler
+
+def set_scenes():
+	scenes = {
+		"f1": load('f1_base_game.py'),
+		"f2": load('f2_sea_scene.py'),
+		"f3": load('f3_rain_scene.py'),
+		"f4": load('f4_to_add.py'),
+		"f5": load('f5_to_add.py'),
+		"f6": load('f6_blank.py'),
+		"f7": load('f7_blank_city.py'),
+		"f8": load('f8_blank_to_add.py'),
+		"f9": load('f9_blank_to_add.py')
+	}
+	return scenes
+
+def set_images():
+	images = {
+		"happy": pygame.transform.scale(pygame.image.load("images/happy.png"), (260, 200)),
+		"heart": pygame.transform.scale(pygame.image.load("images/heart.png"), (260, 200)),
+		"eyes": pygame.transform.scale(pygame.image.load("images/heart eyes.png"), (260, 200)),
+		"content": pygame.transform.scale(pygame.image.load("images/content.png"), (260, 200)),
+		"loading": pygame.transform.scale(pygame.image.load("images/loading.png"), (260, 200)),
+		"scare": pygame.transform.scale(pygame.image.load("images/scare.png"), (260, 200)),
+		"unhappy": pygame.transform.scale(pygame.image.load("images/unhappy.png"), (260, 200)),
+		"warning": pygame.transform.scale(pygame.image.load("images/warning.png"), (260, 200))
+	}
+	return images
