@@ -51,12 +51,15 @@ pygame.key.set_repeat(300, 50)
 label_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 28)
 input_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
 output_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
+button_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 30)
 
 reset = True
 clock = pygame.time.Clock()
 user_input = ''
 AI_response = 'Salut, je suis CanvaEXE.\nOn formera une belle équipe!'
 robot_state = "happy"
+help_box = False
+paused = False
 error_mode = False
 pending = None
 parent = None
@@ -87,7 +90,6 @@ while True:
 			elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
 				error_mode = False
 				current_state = reset_game_state()
-				utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
 				robot_state = "happy"
 		clock.tick(30)
 		continue
@@ -98,6 +100,10 @@ while True:
 			## Uncomment in production
 			# utils.reset_addons(ADDON_PATH, scene1, observer, pending)
 			sys.exit(0)
+		elif event.type == pygame.MOUSEBUTTONDOWN:
+			if button.collidepoint(event.pos):
+				help_box = not help_box
+				paused = help_box
 		elif event.type == pygame.KEYDOWN:
 			# todo: add "draw in pygame primitive" in prompt
 			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6, pygame.K_F7, pygame.K_F8, pygame.K_F9):
@@ -113,7 +119,12 @@ while True:
 			elif event.key == pygame.K_BACKSPACE:
 				user_input = user_input[:-1]
 			elif event.key == pygame.K_ESCAPE:
-				user_input = ''
+				if help_box:
+					help_box = False
+					paused = False
+				else:
+					help_box = True
+					paused = True
 			elif event.key == pygame.K_RETURN:
 				if reset == True:
 					user_input = ''
@@ -147,15 +158,18 @@ while True:
 
 	screen.fill(addons_new.background_color)
 
-	# Custom addons for injection
-	try:
-		addons_new.custom_draw(zone_surface, current_state)
-		addons_new.custom_interaction(screen, current_state)
-	except Exception as e:
-		print("Erreur de runtime avec AI code")
-		utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
-		error_mode = True
-		continue
+	if not paused:
+		try:
+			# Custom addons for injection
+			addons_new.custom_draw(zone_surface, current_state)
+			addons_new.custom_interaction(screen, current_state)
+		except Exception as e:
+			print("Erreur de runtime avec AI code")
+			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+			error_mode = True
+			continue
+	else:
+		text.help_box(screen, WIDTH, HEIGHT, button_font, input_font)
 	
 	# Code show zone
 	pygame.draw.rect(screen, (0,0,0), pygame.Rect(1300, 0, WIDTH - 1300, 800))
@@ -164,6 +178,7 @@ while True:
 	text.input_zone(screen, WIDTH, HEIGHT, label_font, input_font, user_input)
 	text.AI_zone(screen, WIDTH, HEIGHT, label_font, output_font, AI_response)
 	text.bot_zone(screen, robot, robot_state)
+	button = text.help_zone(screen, button_font)
 
 	pygame.display.flip()
 	clock.tick(60)
