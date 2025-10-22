@@ -14,6 +14,6 @@
 - `F8` -> blank to do
 - `F9` -> blank to do
 ### Input
-- `ESC` -> clear input
+- `ESC` -> pause game
 - `Backspace` -> delete input
 - `Enter` -> send input to AI
