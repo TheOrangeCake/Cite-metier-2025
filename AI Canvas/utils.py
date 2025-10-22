@@ -25,7 +25,10 @@ def clean_up(observer, parent = None, pending = None):
 			pending.terminate()
 			pending.join()
 		if parent is not None:
-			parent.close()
+			if hasattr(parent, "close"):
+				parent.close()
+			elif hasattr(parent, "cancel_join_thread"):
+				parent.cancel_join_thread()
 		pending = None
 		parent = None
 	if observer is not None:
@@ -155,14 +158,15 @@ def set_scenes():
 	return scenes
 
 def set_images():
+	size = (235, 180)
 	images = {
-		"happy": pygame.transform.scale(pygame.image.load("images/happy.png"), (260, 200)),
-		"heart": pygame.transform.scale(pygame.image.load("images/heart.png"), (260, 200)),
-		"eyes": pygame.transform.scale(pygame.image.load("images/heart eyes.png"), (260, 200)),
-		"content": pygame.transform.scale(pygame.image.load("images/content.png"), (260, 200)),
-		"loading": pygame.transform.scale(pygame.image.load("images/loading.png"), (260, 200)),
-		"scare": pygame.transform.scale(pygame.image.load("images/scare.png"), (260, 200)),
-		"unhappy": pygame.transform.scale(pygame.image.load("images/unhappy.png"), (260, 200)),
-		"warning": pygame.transform.scale(pygame.image.load("images/warning.png"), (260, 200))
+		"happy": pygame.transform.scale(pygame.image.load("images/happy.png"), size),
+		"heart": pygame.transform.scale(pygame.image.load("images/heart.png"), size),
+		"eyes": pygame.transform.scale(pygame.image.load("images/heart eyes.png"), size),
+		"content": pygame.transform.scale(pygame.image.load("images/content.png"), size),
+		"loading": pygame.transform.scale(pygame.image.load("images/loading.png"), size),
+		"scare": pygame.transform.scale(pygame.image.load("images/scare.png"), size),
+		"unhappy": pygame.transform.scale(pygame.image.load("images/unhappy.png"), size),
+		"warning": pygame.transform.scale(pygame.image.load("images/warning.png"), size)
 	}
 	return images
