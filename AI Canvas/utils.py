@@ -52,6 +52,7 @@ def reload_addons(addons_module, lock):
 			importlib.reload(addons_module)
 		return False
 	except Exception:
+		traceback.print_exc()
 		return True
 
 def start_ai_thread(user_input, main_file, addon_path, lock):
