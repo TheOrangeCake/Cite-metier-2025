@@ -1,6 +1,7 @@
 import pygame
 import sys
 import traceback
+from threading import Thread, Lock
 from addons import addons_new
 import text
 import utils
@@ -13,6 +14,7 @@ ADDON_PATH = 'addons/addons_new.py'
 main_file = utils.load('main.py')
 scenes = utils.set_scenes()
 robot = utils.set_images()
+lock = Lock()
 
 def reset_game_state():
 	return {
@@ -71,10 +73,10 @@ zone_surface = screen.subsurface(draw_zone)
 while True:
 	if addon_handler.reload_pending:
 		addon_handler.reload_pending = False
-		error = utils.reload_addons(addons_new, ADDON_PATH, observer, scenes["f1"])
+		error = utils.reload_addons(addons_new, lock)
 		if error == True:
 			print("Erreur de compilation avec AI code")
-			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock, pending)
 			error_mode = True
 			continue
 
@@ -98,7 +100,7 @@ while True:
 		if event.type == pygame.QUIT:
 			utils.clean_up(observer, parent, pending)
 			## Uncomment in production
-			# utils.reset_addons(ADDON_PATH, scene1, observer, pending)
+			# utils.reset_addons(ADDON_PATH, scene1, observer, lock, pending)
 			sys.exit(0)
 		elif event.type == pygame.MOUSEBUTTONDOWN:
 			if button.collidepoint(event.pos):
@@ -107,13 +109,14 @@ while True:
 		elif event.type == pygame.KEYDOWN:
 			# todo: add "draw in pygame primitive" in prompt
 			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6, pygame.K_F7, pygame.K_F8, pygame.K_F9):
-				current_state = utils.handle_scene_switch(event.key, current_state, observer, pending, scenes, ADDON_PATH, reset_game_state)
+				current_state = utils.handle_scene_switch(event.key, current_state, observer, pending, scenes, ADDON_PATH, reset_game_state, lock)
 			elif event.key in key_handlers:
 				try:
-					key_handlers[event.key](current_state, screen)
+					with lock:
+						key_handlers[event.key](current_state, screen)
 				except Exception as e:
 					print("Erreur de runtime avec AI code")
-					utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+					utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock, pending)
 					error_mode = True
 					continue
 			elif event.key == pygame.K_BACKSPACE:
@@ -131,7 +134,7 @@ while True:
 					reset = False
 					continue
 				if pending is None:
-					pending, parent = utils.start_ai_thread(user_input, main_file, ADDON_PATH)
+					pending, parent = utils.start_ai_thread(user_input, main_file, ADDON_PATH, lock)
 					AI_response = 'Génération de la réponse en cours...'
 					reset = True
 					robot_state = "loading"
@@ -160,12 +163,13 @@ while True:
 
 	if not paused:
 		try:
-			# Custom addons for injection
-			addons_new.custom_draw(zone_surface, current_state)
-			addons_new.custom_interaction(screen, current_state)
+			with lock:
+				# Custom addons for injection
+				addons_new.custom_draw(zone_surface, current_state)
+				addons_new.custom_interaction(screen, current_state)
 		except Exception as e:
 			print("Erreur de runtime avec AI code")
-			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, pending)
+			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock, pending)
 			error_mode = True
 			continue
 	else:
