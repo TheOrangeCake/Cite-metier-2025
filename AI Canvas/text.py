@@ -2,52 +2,72 @@ import pygame
 import random
 
 def input_zone(screen, width, height, label_font, input_font, user_input):
-	zone = pygame.Rect(1300, 800, 620, height - 800)
-	border_radius = 30
-	pygame.draw.rect(screen, (139, 248, 106), zone, border_radius = border_radius)
-	pygame.draw.rect(screen, (100, 155, 155), zone, width=8, border_radius=border_radius)
-	marge_left = zone.x + 30
-	blit_text(screen, "Entres tes modifications:", (marge_left, zone.y + 20), label_font, (60,60,60), zone.x + 530, 20)
-	blit_text(screen, user_input, (marge_left, zone.y + 60), input_font, (0,0,0), zone.x + 530, height - 710)
+	zone_x = int(width * 0.68)
+	zone_y = int(height * 0.74)
+	zone_w = int(width * 0.32)
+	zone_h = int(height * 0.26)
+
+	border_radius = int(width * 0.015)
+	pygame.draw.rect(screen, (139, 248, 106), (zone_x, zone_y, zone_w, zone_h), border_radius=border_radius)
+	pygame.draw.rect(screen, (100, 155, 155), (zone_x, zone_y, zone_w, zone_h), width=int(width * 0.004), border_radius=border_radius)
+
+	margin_left = zone_x + int(width * 0.015)
+	text_max_x = zone_x + zone_w - int(width * 0.05)
+	text_max_y = zone_y + zone_h - int(height * 0.07)
+
+	blit_text(screen, "Entres tes modifications:", (margin_left, zone_y + int(height * 0.02)), label_font, (60,60,60), text_max_x, 20)
+	blit_text(screen, user_input, (margin_left, zone_y + int(height * 0.06)), input_font, (0,0,0), text_max_x, text_max_y)
+
 
 def AI_zone(screen, width, height, label_font, output_font, AI_output):
-	zone = pygame.Rect(0, 800, width - 630, height - 800)
-	border_radius = 30
-	pygame.draw.rect(screen, (248, 165, 106), zone, border_radius = border_radius)
-	pygame.draw.rect(screen, (100, 155, 155), zone, width=8, border_radius=border_radius)
-	blit_text(screen, AI_output, (320, 820), output_font, (0,0,0), 1290, 20)
+	zone_x = 0
+	zone_y = int(height * 0.74)
+	zone_w = int(width * 0.68)
+	zone_h = int(height * 0.26)
 
-def bot_zone(screen, images, state):
+	border_radius = int(width * 0.015)
+	pygame.draw.rect(screen, (248, 165, 106), (zone_x, zone_y, zone_w, zone_h), border_radius=border_radius)
+	pygame.draw.rect(screen, (100, 155, 155), (zone_x, zone_y, zone_w, zone_h), width=int(width * 0.004), border_radius=border_radius)
+
+	text_start_x = int(width * 0.17)
+	text_start_y = zone_y + int(height * 0.02)
+	text_max_x = zone_x + zone_w - int(width * 0.05)
+	text_max_y = zone_y + zone_h - int(height * 0.07)
+
+	blit_text(screen, AI_output, (text_start_x, text_start_y), output_font, (0,0,0), text_max_x, 20)
+
+def bot_zone(screen, images, state, width, height):
 	if not hasattr(bot_zone, "last_state"):
 		bot_zone.last_state = None
 		bot_zone.current_image = None
 		bot_zone.frame_timer = 0
 		bot_zone.frame_threshold = random.randint(180, 300)
 
-	shadow = pygame.Rect(25, 815, 275, 200)
-	border_radius = 30
-	pygame.draw.rect(screen, (100, 100, 100), shadow, border_radius = border_radius)
-	background = pygame.Rect(20, 810, 275, 200)
-	pygame.draw.rect(screen, (248, 236, 106), background, border_radius = border_radius)
-	pos = (40, 820)
+	zone_w = int(width * 0.145)
+	zone_h = int(height * 0.185)
+	zone_x = int(width * 0.010)
+	zone_y = int(height * 0.75)
+	border_radius = int(width * 0.015)
+
+	shadow = pygame.Rect(zone_x + 5, zone_y + 5, zone_w, zone_h)
+	pygame.draw.rect(screen, (100, 100, 100), shadow, border_radius=border_radius)
+	background = pygame.Rect(zone_x, zone_y, zone_w, zone_h)
+	pygame.draw.rect(screen, (248, 236, 106), background, border_radius=border_radius)
+	pos = (zone_x + int(width * 0.01), zone_y + int(height * 0.02))
+
 	if state != bot_zone.last_state:
 		bot_zone.last_state = state
 		bot_zone.frame_timer = 0
 		bot_zone.frame_threshold = random.randint(180, 300)
-
 		if state == "loading":
 			bot_zone.current_image = images["loading"]
 		elif state == "happy":
 			bot_zone.current_image = random.choice([
-				images["happy"],
-				images["heart"],
-				images["content"],
-				images["eyes"],
+				images["happy"], images["heart"], images["content"], images["eyes"]
 			])
 		elif state == "sad":
 			bot_zone.current_image = random.choice([
-				images["unhappy"],
-				images["scare"],
+				images["unhappy"], images["scare"]
 			])
 	else:
 		bot_zone.frame_timer += 1
@@ -55,49 +75,84 @@ def bot_zone(screen, images, state):
 			bot_zone.frame_timer = 0
 			bot_zone.frame_threshold = random.randint(180, 300)
 			bot_zone.current_image = random.choice([
-				images["happy"],
-				images["heart"],
+				images["happy"], images["heart"]
 			])
 	if bot_zone.current_image:
 		screen.blit(bot_zone.current_image, pos)
 
-def help_zone(screen, font):
-	shadow = pygame.Rect(25, 1025, 275, 40)
-	border_radius = 10
-	pygame.draw.rect(screen, (100, 100, 100), shadow, border_radius = border_radius)
-	background = pygame.Rect(20, 1020, 275, 40)
-	pygame.draw.rect(screen, (248, 236, 255), background, border_radius = border_radius)
-	# blit_text(screen, "TIPS", (30, 1025), font, (60,60,60), 275, 40)
-	text = font.render("GUIDE et PAUSE", True, (60,60,60))
+
+def quit_zone(screen, font, width, height):
+	total_w = int(width * 0.145)
+	total_h = int(height * 0.037)
+	total_x = int(width * 0.010)
+	total_y = int(height * 0.945)
+	border_radius = int(width * 0.007)
+
+	margin = int(total_w * 0.03)
+	zone_w = (total_w - margin) // 2
+
+	zone_x = total_x
+	shadow = pygame.Rect(zone_x + 5, total_y + 5, zone_w, total_h)
+	pygame.draw.rect(screen, (100, 100, 100), shadow, border_radius=border_radius)
+	background = pygame.Rect(zone_x, total_y, zone_w, total_h)
+	pygame.draw.rect(screen, (248, 236, 255), background, border_radius=border_radius)
+
+	text = font.render("QUIT", True, (60, 60, 60))
 	text_rect = text.get_rect(center=background.center)
 	screen.blit(text, text_rect)
 	return background
+
+
+def pause_zone(screen, font, width, height):
+	total_w = int(width * 0.145)
+	total_h = int(height * 0.037)
+	total_x = int(width * 0.010)
+	total_y = int(height * 0.945)
+	border_radius = int(width * 0.007)
+
+	margin = int(total_w * 0.03)
+	zone_w = (total_w - margin) // 2
+
+	zone_x = total_x + zone_w + margin
+	shadow = pygame.Rect(zone_x + 5, total_y + 5, zone_w, total_h)
+	pygame.draw.rect(screen, (100, 100, 100), shadow, border_radius=border_radius)
+	background = pygame.Rect(zone_x, total_y, zone_w, total_h)
+	pygame.draw.rect(screen, (248, 236, 255), background, border_radius=border_radius)
+
+	text = font.render("PAUSE", True, (60, 60, 60))
+	text_rect = text.get_rect(center=background.center)
+	screen.blit(text, text_rect)
+	return background
+
 
 def help_box(screen, width, height, button_font, input_font):
 	overlay = pygame.Surface((width, height), pygame.SRCALPHA)
 	overlay.fill((0, 0, 0, 180))
 	screen.blit(overlay, (0, 0))
 
-	box_rect = pygame.Rect(width//2 - 300, height//2 - 200, 600, 400)
-	border_radius = 15
-	pygame.draw.rect(screen, (255, 255, 255), box_rect, border_radius=border_radius)
-	pygame.draw.rect(screen, (0, 0, 0), box_rect, 3, border_radius=border_radius)
+	box_w = int(width * 0.31)
+	box_h = int(height * 0.37)
+	box_x = width // 2 - box_w // 2
+	box_y = height // 2 - box_h // 2
+	border_radius = int(width * 0.008)
+
+	pygame.draw.rect(screen, (255, 255, 255), (box_x, box_y, box_w, box_h), border_radius=border_radius)
+	pygame.draw.rect(screen, (0, 0, 0), (box_x, box_y, box_w, box_h), width=int(width * 0.002), border_radius=border_radius)
 
 	text_surface = button_font.render("Comment ça marche?", True, (0, 0, 0))
-	screen.blit(text_surface, (box_rect.centerx - text_surface.get_width()//2, box_rect.top + 30))
-	lines = [
-		"Flèches = déplacer",
-		"Entrée = lancer l'IA",
-	]
-	y = box_rect.top + 100
+	screen.blit(text_surface, (width // 2 - text_surface.get_width() // 2, box_y + int(height * 0.03)))
+
+	lines = ["Flèches = déplacer", "Entrée = lancer l'IA"]
+	y = box_y + int(height * 0.09)
 	for line in lines:
 		surf = input_font.render(line, True, (0, 0, 0))
-		screen.blit(surf, (box_rect.centerx - surf.get_width()//2, y))
-		y += 40
-	close = "Cliquez de nouveau sur le bouton ou ESC pour fermer"
+		screen.blit(surf, (width // 2 - surf.get_width() // 2, y))
+		y += int(height * 0.04)
+
+	close = "Cliquez sur PAUSE ou presses ESC pour fermer"
 	close_line = input_font.render(close, True, (0, 0, 0))
-	y += 120
-	screen.blit(close_line, (box_rect.centerx - close_line.get_width()//2, y))
+	y += int(height * 0.12)
+	screen.blit(close_line, (width // 2 - close_line.get_width() // 2, y))
 		
 # https://stackoverflow.com/questions/42014195/rendering-text-with-multiple-lines-in-pygame
 def blit_text(surface, text, pos, font, color, max_width, max_height):
@@ -117,6 +172,7 @@ def blit_text(surface, text, pos, font, color, max_width, max_height):
 		y += word_height
 
 def error_handler(screen, label_font, height, width, image):
+	screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 	error_message = "Oh no!\n" \
 			"\n" \
 			"Désolé, j'ai fait des erreurs dans le code et le programme a été réinitialisé à l'état initial.\n" \
