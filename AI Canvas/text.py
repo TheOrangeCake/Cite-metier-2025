@@ -125,34 +125,43 @@ def pause_zone(screen, font, width, height):
 	return background
 
 
-def help_box(screen, width, height, button_font, input_font):
+def help_box(screen, width, height, button_font, input_font, robot):
 	overlay = pygame.Surface((width, height), pygame.SRCALPHA)
 	overlay.fill((0, 0, 0, 180))
 	screen.blit(overlay, (0, 0))
 
-	box_w = int(width * 0.31)
-	box_h = int(height * 0.37)
-	box_x = width // 2 - box_w // 2
-	box_y = height // 2 - box_h // 2
+	box_w = int(width * 0.5)
+	box_h = int(height * 0.6)
+	box_x = width // 3 - box_w // 2
+	box_y = height // 3 - box_h // 2
 	border_radius = int(width * 0.008)
 
 	pygame.draw.rect(screen, (255, 255, 255), (box_x, box_y, box_w, box_h), border_radius=border_radius)
 	pygame.draw.rect(screen, (0, 0, 0), (box_x, box_y, box_w, box_h), width=int(width * 0.002), border_radius=border_radius)
-
+	robot_rect = robot.get_rect(center=(box_x + box_w // 2, box_y + box_h // 5))
+	screen.blit(robot, robot_rect)
 	text_surface = button_font.render("Comment ça marche?", True, (0, 0, 0))
-	screen.blit(text_surface, (width // 2 - text_surface.get_width() // 2, box_y + int(height * 0.03)))
+	text_x = box_x + (box_w - text_surface.get_width()) // 2
+	text_y = box_y + int(height * 0.23)
+	screen.blit(text_surface, (text_x, text_y))
 
-	lines = ["Flèches = déplacer", "Entrée = lancer l'IA"]
-	y = box_y + int(height * 0.09)
+	lines = ["Le but est de s'amuser en modifiant le canvas avec IA", \
+			"Commencer par tapper la modification souhaitée, puis Enter", \
+			"IA enchargera de modifier le code, dont le canva", \
+			"La retour prendra environ 1 minute", \
+			"Amuses-toi bien !"]
+	y = box_y + int(height * 0.27)
 	for line in lines:
 		surf = input_font.render(line, True, (0, 0, 0))
-		screen.blit(surf, (width // 2 - surf.get_width() // 2, y))
-		y += int(height * 0.04)
+		line_x = box_x + (box_w - surf.get_width()) // 2
+		screen.blit(surf, (line_x, y))
+		y += int(height * 0.03)
 
 	close = "Cliquez sur PAUSE ou presses ESC pour fermer"
 	close_line = input_font.render(close, True, (0, 0, 0))
-	y += int(height * 0.12)
-	screen.blit(close_line, (width // 2 - close_line.get_width() // 2, y))
+	close_x = box_x + (box_w - close_line.get_width()) // 2
+	y = box_y + box_h - int(height * 0.1)
+	screen.blit(close_line, (close_x, y))
 		
 # https://stackoverflow.com/questions/42014195/rendering-text-with-multiple-lines-in-pygame
 def blit_text(surface, text, pos, font, color, max_width, max_height):

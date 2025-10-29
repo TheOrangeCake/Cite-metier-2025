@@ -33,7 +33,10 @@ button_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 30)
 reset = True
 clock = pygame.time.Clock()
 user_input = ''
-AI_response = 'Salut, je suis Canva-EX.\nOn formera une belle équipe!'
+AI_response = 'Salut, je suis Canva-Exe.\n' \
+			'Ensemble, nous personalisons le canvas sans tapper une ligne de code !\n' \
+			'\n' \
+			'Tips: Plus la demande est détaillée, mieux la résultat !'
 robot_state = "happy"
 help_box = False
 paused = False
@@ -152,8 +155,8 @@ while True:
 			error_mode = True
 			continue
 	else:
-		text.help_box(screen, width, height, button_font, input_font)
-	
+		text.help_box(screen, width, height, button_font, input_font, robot["question"])
+
 	# Code show zone
 	code_zone = pygame.Rect(draw_zone_width, 0, width - draw_zone_width, draw_zone_height)
 	pygame.draw.rect(screen, (0, 0, 0), code_zone)

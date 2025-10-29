@@ -174,6 +174,7 @@ def set_images():
 		"loading": pygame.transform.scale(pygame.image.load("images/loading.png"), size),
 		"scare": pygame.transform.scale(pygame.image.load("images/scare.png"), size),
 		"unhappy": pygame.transform.scale(pygame.image.load("images/unhappy.png"), size),
-		"warning": pygame.transform.scale(pygame.image.load("images/warning.png"), size)
+		"warning": pygame.transform.scale(pygame.image.load("images/warning.png"), size),
+		"question": pygame.transform.scale(pygame.image.load("images/question.png"), (261, 200))
 	}
 	return images
