@@ -13,7 +13,38 @@ ADDON_PATH = 'addons/addons_new.py'
 context_file = utils.load('context.py')
 scenes = utils.set_scenes()
 robot = utils.set_images()
-lock = Lock()
+AI_response = (
+				"Salut, je suis Canva-Exe.\n"
+				"Ensemble, nous personalisons le canvas sans tapper une ligne de code !\n"
+				"\n"
+				"Tips: Plus la demande est détaillée, mieux la résultat !"
+			)
+wait_message = (
+					"Une génération est déjà en cours...\n"
+					"Ca peut prendre jusqu\'à 1 minute"
+				)
+submit_message = (
+					"Génération de la réponse en cours...\n"
+					"Ca peut prendre jusqu\'à 1 minute"
+				)
+getting_message = (
+						"J\'ai hâte de voir ton message!\n"
+						"Tips: Plus ton message est détaillé, plus le rendu sera juste"
+					)
+error_message = (
+					"Oh no!\n"
+					"\n"
+					"Désolé, j'ai fait des erreurs dans le code et le programme a été réinitialisé à l'état initial.\n"
+					"L'IA n'est pas omnipotente et peut faire des erreurs. J'ai besoin d'un humain pour corriger mes erreurs.\n"
+					"Les métiers de l'informatique ne sont pas remplaçables par l'IA."
+				)
+pause_message = [
+					"Le but est de s'amuser en modifiant le canvas avec l'IA.",
+					"Commence par taper la modification souhaitée, puis appuie sur Entrée.",
+					"L'IA se chargera de modifier le code, y compris le canvas.",
+					"La réponse prendra environ une minute.",
+					"Amuse-toi bien !"
+				]
 
 observer, addon_handler = utils.start_watchdog(ADDON_PATH)
 pygame.init()
@@ -33,10 +64,6 @@ button_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 30)
 reset = True
 clock = pygame.time.Clock()
 user_input = ''
-AI_response = 'Salut, je suis Canva-Exe.\n' \
-			'Ensemble, nous personalisons le canvas sans tapper une ligne de code !\n' \
-			'\n' \
-			'Tips: Plus la demande est détaillée, mieux la résultat !'
 robot_state = "happy"
 help_box = False
 paused = False
@@ -50,6 +77,8 @@ draw_zone_height = int(height * 0.74)
 draw_zone = pygame.Rect(0, 0, draw_zone_width, draw_zone_height)
 screen.fill((0, 0, 0))
 zone_surface = screen.subsurface(draw_zone)
+
+lock = Lock()
 
 while True:
 	if addon_handler.reload_pending:
@@ -65,7 +94,7 @@ while True:
 		change_logger.get_logger().on_file_modified()
 
 	if error_mode:
-		text.error_handler(screen, label_font, height, width, robot["warning"])
+		text.error_handler(screen, label_font, height, width, robot["warning"], error_message)
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				utils.clean_up(observer, parent, pending)
@@ -93,7 +122,6 @@ while True:
 				# utils.reset_addons(ADDON_PATH, scene1, observer, lock, pending)
 				sys.exit(0)
 		elif event.type == pygame.KEYDOWN:
-			# todo: add "draw in pygame primitive" in prompt
 			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6, pygame.K_F7, pygame.K_F8, pygame.K_F9):
 				current_state = utils.handle_scene_switch(event.key, current_state, observer, pending, scenes, ADDON_PATH, context.reset_game_state, lock)
 			elif event.key in context.key_handlers:
@@ -120,12 +148,15 @@ while True:
 					reset = False
 					continue
 				if pending is None:
-					pending, parent = utils.start_ai_thread(user_input, context_file, ADDON_PATH, lock)
-					AI_response = 'Génération de la réponse en cours...'
-					reset = True
-					robot_state = "loading"
+					if not user_input:
+						continue
+					else:
+						pending, parent = utils.start_ai_thread(user_input, context_file, ADDON_PATH, lock)
+						AI_response = submit_message
+						reset = True
+						robot_state = "loading"
 				else:
-					AI_response = 'Une génération est déjà en cours...'
+					AI_response = wait_message
 					robot_state = "loading"
 					reset = False
 			else:
@@ -134,8 +165,7 @@ while True:
 						user_input = ''
 						reset = False
 					user_input += event.unicode
-					AI_response = ("J'ai hâte de voir ton message!\n"
-									"Tips: Plus ton message est détaillé, plus le rendu sera juste")
+					AI_response = getting_message
 
 	done, result, status, pending, parent = utils.check_ai_thread(pending, parent)
 	if done:
@@ -155,11 +185,12 @@ while True:
 			error_mode = True
 			continue
 	else:
-		text.help_box(screen, width, height, button_font, input_font, robot["question"])
+		text.help_box(screen, width, height, button_font, input_font, robot["question"], pause_message)
 
 	# Code show zone
 	code_zone = pygame.Rect(draw_zone_width, 0, width - draw_zone_width, draw_zone_height)
-	pygame.draw.rect(screen, (0, 0, 0), code_zone)
+	pygame.draw.rect(screen, (0, 0, 0), code_zone, border_radius=int(width * 0.008))
+	pygame.draw.rect(screen, (50, 50, 50), code_zone, width=int(width * 0.002), border_radius=int(width * 0.008))
 	change_logger.draw_changes(screen)
 
 	text.input_zone(screen, width, height, label_font, input_font, user_input)

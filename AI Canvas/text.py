@@ -125,7 +125,7 @@ def pause_zone(screen, font, width, height):
 	return background
 
 
-def help_box(screen, width, height, button_font, input_font, robot):
+def help_box(screen, width, height, button_font, input_font, robot, pause_message):
 	overlay = pygame.Surface((width, height), pygame.SRCALPHA)
 	overlay.fill((0, 0, 0, 180))
 	screen.blit(overlay, (0, 0))
@@ -145,13 +145,8 @@ def help_box(screen, width, height, button_font, input_font, robot):
 	text_y = box_y + int(height * 0.23)
 	screen.blit(text_surface, (text_x, text_y))
 
-	lines = ["Le but est de s'amuser en modifiant le canvas avec IA", \
-			"Commencer par tapper la modification souhaitée, puis Enter", \
-			"IA enchargera de modifier le code, dont le canva", \
-			"La retour prendra environ 1 minute", \
-			"Amuses-toi bien !"]
 	y = box_y + int(height * 0.27)
-	for line in lines:
+	for line in pause_message:
 		surf = input_font.render(line, True, (0, 0, 0))
 		line_x = box_x + (box_w - surf.get_width()) // 2
 		screen.blit(surf, (line_x, y))
@@ -180,13 +175,8 @@ def blit_text(surface, text, pos, font, color, max_width, max_height):
 		x = pos[0]
 		y += word_height
 
-def error_handler(screen, label_font, height, width, image):
+def error_handler(screen, label_font, height, width, image, error_message):
 	screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
-	error_message = "Oh no!\n" \
-			"\n" \
-			"Désolé, j'ai fait des erreurs dans le code et le programme a été réinitialisé à l'état initial.\n" \
-			"L'IA n'est pas omnipotente et peut faire des erreurs. J'ai besoin d'un humain pour corriger mes erreurs.\n" \
-			"Les métiers de l'informatique ne sont pas remplaçables par l'IA."
 	screen.fill((0, 0, 0))
 	img_rect = image.get_rect()
 	img_rect.center = (width // 2, height // 3)
