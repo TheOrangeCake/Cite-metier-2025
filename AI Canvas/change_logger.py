@@ -8,7 +8,6 @@ class ChangeLogger:
     def __init__(self, file_path="addons/addons_new.py"):
         self.file_path = file_path
         self.changes = []
-        self.max_lines = 20
         self.font = pygame.font.SysFont('Courier', 14, False, False)
         self.previous_content = self._read_file()
 
@@ -41,10 +40,6 @@ class ChangeLogger:
             elif line.startswith('-'):
                 self.changes.append(('del', line[1:].rstrip()))
 
-        # Garde seulement les dernières lignes
-        if len(self.changes) > self.max_lines:
-            self.changes = self.changes[-self.max_lines:]
-
         self.previous_content = current_content
 
     def draw(self, screen):
@@ -54,26 +49,20 @@ class ChangeLogger:
         box_width = 620
         box_height = 800
 
-        surface = pygame.Surface((box_width, box_height))
-        surface.set_alpha(230)
-        surface.fill((0, 0, 0))
-        screen.blit(surface, (box_x, box_y))
+        title_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 32)
+        title = title_font.render("Modifications du code:", True, (255, 255, 255))
+        screen.blit(title, (box_x + 20, box_y + 15))
 
-        pygame.draw.rect(screen, (100, 100, 100), (box_x, box_y, box_width, box_height), 2)
+        y_offset = 70
+        line_height = 30
 
-        title_font = pygame.font.SysFont('Calibri', 16, True, False)
-        title = title_font.render("Modifications addons.py:", True, (255, 255, 255))
-        screen.blit(title, (box_x + 10, box_y + 5))
-
-        y_offset = 30
-        line_height = 16
-
+        line_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
         for change_type, line_content in self.changes[-10:]:
             color = (255, 255, 255) if change_type == 'add' else (255, 0, 0)
             prefix = "+ " if change_type == 'add' else "- "
             display_text = prefix + line_content[:65]
-            text_surface = self.font.render(display_text, True, color)
-            screen.blit(text_surface, (box_x + 10, box_y + y_offset))
+            text_surface = line_font.render(display_text, True, color)
+            screen.blit(text_surface, (box_x + 20, box_y + y_offset))
             y_offset += line_height
             if y_offset > box_height - 20:
                 break

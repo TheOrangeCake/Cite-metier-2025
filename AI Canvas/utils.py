@@ -21,7 +21,6 @@ def clean_up(observer, parent = None, pending = None):
 	if pending is not None:
 		pending.join(timeout=0.1)
 		if pending.is_alive():
-			pending.terminate()
 			pending.join()
 		if parent is not None:
 			if hasattr(parent, "close"):

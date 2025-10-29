@@ -17,3 +17,7 @@
 - `ESC` -> pause game
 - `Backspace` -> delete input
 - `Enter` -> send input to AI
+
+
+### Image credits
+Robot emotes designed by pch.vector - Freepik.com
