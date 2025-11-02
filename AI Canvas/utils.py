@@ -7,6 +7,7 @@ from queue import Queue
 from bot_filter import response_analizer
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from new_bot import AI_call
 
 def load(path):
 	try:
@@ -53,7 +54,7 @@ def start_ai_thread(user_input, main_file, addon_path):
 
 	def worker(q, user_input, main_file, addon_path):
 		try:
-			result = response_analizer(user_input, main_file, addon_path)
+			result = AI_call(user_input, main_file, addon_path)
 			q.put(result)
 		except Exception as e:
 			traceback.print_exc()
