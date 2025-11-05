@@ -28,8 +28,8 @@ submit_message = (
 					"Ca peut prendre jusqu\'à 1 minute"
 				)
 getting_message = (
-						"J\'ai hâte de voir ton message!\n"
-						"Tips: Plus ton message est détaillé, plus le rendu sera juste"
+					"J\'ai hâte de voir ton message!\n"
+					"Tips: Plus ton message est détaillé, plus le rendu sera juste"
 					)
 error_message = (
 					"Oh no!\n"
@@ -167,10 +167,13 @@ while True:
 					user_input += event.unicode
 					AI_response = getting_message
 
-	done, result, status, pending, parent = utils.check_ai_thread(pending, parent)
+	done, result, status, code, pending, parent = utils.check_ai_thread(pending, parent)
 	if done:
 		AI_response = result
 		robot_state = "happy"
+		with lock:
+			with open(ADDON_PATH, 'w') as file:
+				file.write(code)
 		if status != "OK":
 			robot_state = "sad"
 

@@ -75,9 +75,9 @@ def start_ai_thread(user_input, main_file, addon_path, lock):
 
 
 def check_ai_thread(thread, queue):
-	# Returns (is_done, AI_response, status, thread, queue)
+	# Returns (is_done, AI_response, status, code, thread, queue)
 	if thread is None:
-		return False, None, None, None, None
+		return False, None, None, None, None, None
 
 	if not thread.is_alive():
 		AI_response = ''
@@ -87,11 +87,12 @@ def check_ai_thread(thread, queue):
 			if isinstance(output, dict):
 				status = output.get("status", "error")
 				AI_response = output.get("message", "")
+				code = output.get("output", "")
 			else:
 				AI_response = str(output)
-		return True, AI_response, status, None, None
+		return True, AI_response, status, code, None, None
 
-	return False, None, None, thread, queue
+	return False, None, None, None, thread, queue
 
 def handle_scene_switch(event_key, current_state, observer, pending, scenes, addon_path, reset_game_state, lock):
 	new_state = current_state
