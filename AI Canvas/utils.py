@@ -14,7 +14,7 @@ def load(path):
 			scene = file.read()
 			return scene
 	except Exception as e:
-		print('Base files open error')
+		traceback.print_exc()
 		sys.exit(1)
 
 def clean_up(observer, parent = None, pending = None):
@@ -34,13 +34,13 @@ def clean_up(observer, parent = None, pending = None):
 		observer.join()
 	pygame.quit()
 
-def reset_addons(path, addons_base, observer, lock, pending=None):
+def reset_addons(path, last_state, observer, lock):
 	try:
 		with lock:
 			with open(path, 'w', encoding='utf-8') as file:
-				file.write(addons_base)
+				file.write(last_state)
 	except Exception as e:
-		print('Reset base addons error')
+		print('Reset state error')
 		clean_up(observer)
 		sys.exit(1)
 
@@ -89,43 +89,52 @@ def check_ai_thread(thread, queue):
 
 	return False, None, None, None, thread, queue
 
-def handle_scene_switch(event_key, current_state, observer, pending, scenes, addon_path, reset_game_state, lock):
+def handle_scene_switch(event_key, current_state, observer, scenes, addon_path, reset_game_state, lock, last_state):
 	new_state = current_state
 	if event_key == pygame.K_F1:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f1"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f1"], observer, lock)
+		last_state = scenes["f1"]
 		print("Load f1")
 	elif event_key == pygame.K_F2:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f2"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f2"], observer, lock)
+		last_state = scenes["f2"]
 		print("Load f2")
 	elif event_key == pygame.K_F3:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f3"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f3"], observer, lock)
+		last_state = scenes["f3"]
 		print("Load f3")
 	elif event_key == pygame.K_F4:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f4"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f4"], observer, lock)
+		last_state = scenes["f4"]
 		print("Load f4")
 	elif event_key == pygame.K_F5:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f5"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f5"], observer, lock)
+		last_state = scenes["f5"]
 		print("Load f5")
 	elif event_key == pygame.K_F6:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f6"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f6"], observer, lock)
+		last_state = scenes["f6"]
 		print("Load f6")
 	elif event_key == pygame.K_F7:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f7"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f7"], observer, lock)
+		last_state = scenes["f7"]
 		print("Load f7")
 	elif event_key == pygame.K_F8:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f8"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f8"], observer, lock)
+		last_state = scenes["f8"]
 		print("Load f8")
 	elif event_key == pygame.K_F9:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f9"], observer, lock, pending)
+		reset_addons(addon_path, scenes["f9"], observer, lock)
+		last_state = scenes["f9"]
 		print("Load f9")
 	return new_state
 
@@ -159,17 +168,38 @@ def set_scenes():
 	}
 	return scenes
 
-def set_images():
-	size = (235, 180)
-	images = {
-		"happy": pygame.transform.scale(pygame.image.load("images/happy.png"), size),
-		"heart": pygame.transform.scale(pygame.image.load("images/heart.png"), size),
-		"eyes": pygame.transform.scale(pygame.image.load("images/heart eyes.png"), size),
-		"content": pygame.transform.scale(pygame.image.load("images/content.png"), size),
-		"loading": pygame.transform.scale(pygame.image.load("images/loading.png"), size),
-		"scare": pygame.transform.scale(pygame.image.load("images/scare.png"), size),
-		"unhappy": pygame.transform.scale(pygame.image.load("images/unhappy.png"), size),
-		"warning": pygame.transform.scale(pygame.image.load("images/warning.png"), size),
-		"question": pygame.transform.scale(pygame.image.load("images/question.png"), (261, 200))
+import pygame
+
+# original design resolution
+DESIGN_WIDTH = 1920
+DESIGN_HEIGHT = 1280
+
+def set_images(screen_width, screen_height):
+	scale_w = screen_width / 1920
+	scale_h = screen_height / 1080
+	scale = min(scale_w, scale_h)
+
+	original_sizes = {
+		"happy": (235, 180),
+		"heart": (235, 180),
+		"eyes": (235, 180),
+		"content": (235, 180),
+		"loading": (235, 180),
+		"scare": (235, 180),
+		"unhappy": (235, 180),
+		"warning": (235, 180),
+		"question": (261, 200),
 	}
+
+	images = {}
+	for name, (w, h) in original_sizes.items():
+		new_size = (int(w * scale), int(h * scale))
+		try:
+			images[name] = pygame.transform.scale(
+				pygame.image.load(f"images/{name}.png"), new_size
+			)
+		except Exception:
+				traceback.print_exc()
+				pygame.quit()
+				sys.exit(1)
 	return images

@@ -1,6 +1,6 @@
 # Dependencies
-- pygame
-- watchdog
+- pygame `apt-get install -y python3-pygame`
+- watchdog `python3 -m pip install -U watchdog`
 
 # Control
 ### Preset canvas
