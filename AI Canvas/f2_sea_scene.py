@@ -13,25 +13,31 @@ def right_press(state, screen):
 	pass
 
 def up_press(state, screen):
-	if not state["is_jumping"]:
+	if not state["is_jumping"] and not state["is_ducking"]:
 		state["velocity"] = state["jump_power"]
 		state["is_jumping"] = True
 
 def down_press(state, screen):
-	pass
+	if not state["is_jumping"]:
+		state["is_ducking"] = True
 
 def reset_game(state):
 	state["y"] = state["GROUND_Y"]
 	state["velocity"] = 0
 	state["is_jumping"] = False
+	state["is_ducking"] = False
 	state["obstacles"] = []
 	state["score"] = 0
 	state["game_over"] = False
 
-def draw_boat(screen, boat_x, boat_y, boat_w, boat_h):
-	hull_color = (139, 69, 19)
+def draw_boat(screen, boat_x, boat_y, boat_w, boat_h, is_ducking):
+	hull_color = (128, 0, 128)  # Purple
 	sail_color = (255, 255, 255)
 	mast_color = (105, 105, 105)
+
+	if is_ducking:
+		boat_h = boat_h // 2
+		boat_y += boat_h
 
 	hull_height = boat_h // 2
 	hull_bottom_y = boat_y + boat_h       # bottom aligned with boat rect
@@ -98,16 +104,24 @@ def custom_draw(screen, state):
 		if state["y"] >= state["GROUND_Y"]:
 			state["y"] = state["GROUND_Y"]
 			state["is_jumping"] = False
+			state["is_ducking"] = False
 
 		# Obstacles
 		state["obstacle_timer"] += 1
 		if state["obstacle_timer"] >= state["obstacle_frequency"]:
 			state["obstacle_timer"] = 0
-			height = random.choice([
-				int(state["GAME_HEIGHT"] * 0.04),
-				int(state["GAME_HEIGHT"] * 0.06)
-			])
-			y_pos = state["GROUND_Y"] + state["height"] - height
+			obstacle_type = random.choice(["ground", "flying"])
+			
+			if obstacle_type == "ground":
+				height = random.choice([
+					int(state["GAME_HEIGHT"] * 0.04),
+					int(state["GAME_HEIGHT"] * 0.06)
+				])
+				y_pos = state["GROUND_Y"] + state["height"] - height
+			else:  # flying obstacle
+				height = int(state["GAME_HEIGHT"] * 0.05)
+				y_pos = state["GROUND_Y"] - height - int(state["GAME_HEIGHT"] * 0.15)
+				
 			# Darker colors
 			color = random.choice([
 				(180, 40, 40), (40, 180, 40),
@@ -117,7 +131,7 @@ def custom_draw(screen, state):
 			shape_type = random.choice(["triangle", "diamond", "pentagon"])
 			state["obstacles"].append([
 				state["GAME_WIDTH"], y_pos,
-				int(state["GAME_WIDTH"] * 0.03), height, color, shape_type
+				int(state["GAME_WIDTH"] * 0.03), height, color, shape_type, obstacle_type
 			])
 
 		# Move & collision
@@ -152,15 +166,20 @@ def custom_draw(screen, state):
 	pygame.draw.circle(screen, sun_color, (int(sun_x), int(sun_y)), sun_radius)
 
 	# Draw moving clouds
-	cloud_color = (255, 255, 255)
 	for cloud_x, cloud_y in state["clouds"]:
-		# Fluffy cloud using multiple overlapping circles
-		pygame.draw.circle(screen, cloud_color, (int(cloud_x), int(cloud_y)), 25)
-		pygame.draw.circle(screen, cloud_color, (int(cloud_x + 20), int(cloud_y - 15)), 20)
-		pygame.draw.circle(screen, cloud_color, (int(cloud_x + 40), int(cloud_y)), 25)
-		pygame.draw.circle(screen, cloud_color, (int(cloud_x + 20), int(cloud_y + 15)), 20)
-		pygame.draw.circle(screen, cloud_color, (int(cloud_x + 10), int(cloud_y)), 22)
-		pygame.draw.circle(screen, cloud_color, (int(cloud_x + 30), int(cloud_y)), 22)
+		# Fluffy cloud using multiple overlapping circles with random colors
+		rand_color1 = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+		rand_color2 = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+		rand_color3 = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+		rand_color4 = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+		rand_color5 = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+		rand_color6 = (random.randint(200, 255), random.randint(200, 255), random.randint(200, 255))
+		pygame.draw.circle(screen, rand_color1, (int(cloud_x), int(cloud_y)), 25)
+		pygame.draw.circle(screen, rand_color2, (int(cloud_x + 20), int(cloud_y - 15)), 20)
+		pygame.draw.circle(screen, rand_color3, (int(cloud_x + 40), int(cloud_y)), 25)
+		pygame.draw.circle(screen, rand_color4, (int(cloud_x + 20), int(cloud_y + 15)), 20)
+		pygame.draw.circle(screen, rand_color5, (int(cloud_x + 10), int(cloud_y)), 22)
+		pygame.draw.circle(screen, rand_color6, (int(cloud_x + 30), int(cloud_y)), 22)
 
 	# Draw sea water
 	wave_y = state["GROUND_Y"] + state["height"]
@@ -188,13 +207,13 @@ def custom_draw(screen, state):
 	boat_w = state["width"]
 	boat_h = state["height"]
 
-	draw_boat(screen, boat_x, boat_y, boat_w, boat_h)
+	draw_boat(screen, boat_x, boat_y, boat_w, boat_h, state["is_ducking"])
 
 	# Mast (vertical line) - removed since it's now part of draw_boat
 
 	for obs in state["obstacles"]:
 		# Draw different shapes based on type
-		x, y, w, h, color, shape_type = obs[0], obs[1], obs[2], obs[3], obs[4], obs[5]
+		x, y, w, h, color, shape_type, obstacle_type = obs[0], obs[1], obs[2], obs[3], obs[4], obs[5], obs[6]
 		
 		if shape_type == "triangle":
 			points = [
@@ -239,5 +258,7 @@ def custom_interaction(screen, state):
 	keys = pygame.key.get_pressed()
 	if keys[pygame.K_TAB]:
 		reset_game(state)
+	if not keys[pygame.K_DOWN]:
+		state["is_ducking"] = False
 
 #--End--
