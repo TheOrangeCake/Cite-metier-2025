@@ -116,8 +116,5 @@ def response_analizer(prompt, main, addon_path, lock):
 	end_pos = explanation.find("#--End--")
 	output = explanation[start_pos : end_pos + 8]
 	message = explanation[0 : start_pos]
-	with lock:
-		with open(addon_path, 'w') as file:
-			file.write(output)
-	
-	return {"status": status, "message": message}
+
+	return {"status": status, "message": message, "output": output}
