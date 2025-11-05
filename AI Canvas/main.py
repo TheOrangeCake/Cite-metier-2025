@@ -12,7 +12,7 @@ PROJECT_NAME = 'AI Canvas'
 ADDON_PATH = 'addons/addons_new.py'
 context_file = utils.load('context.py')
 scenes = utils.set_scenes()
-robot = utils.set_images()
+last_state = utils.load('addons/addons_new.py')
 AI_response = (
 				"Salut, je suis Canva-Exe.\n"
 				"Ensemble, nous personalisons le canvas sans tapper une ligne de code !\n"
@@ -38,10 +38,14 @@ error_message = (
 					"L'IA n'est pas omnipotente et peut faire des erreurs. J'ai besoin d'un humain pour corriger mes erreurs.\n"
 					"Les métiers de l'informatique ne sont pas remplaçables par l'IA."
 				)
+message_after_recover_from_error = (
+										"Tu peux essayer de nouveau!\n"
+										"Tips: Je ne peux faire que des demandes simples"
+									)
 pause_message = [
 					"Le but est de s'amuser en modifiant le canvas avec l'IA.",
 					"Commence par taper la modification souhaitée, puis appuie sur Entrée.",
-					"L'IA se chargera de modifier le code, y compris le canvas.",
+					"L'IA se chargera de modifier le code, dont le canvas.",
 					"La réponse prendra environ une minute.",
 					"Amuse-toi bien !"
 				]
@@ -51,6 +55,7 @@ pygame.init()
 desktop = pygame.display.Info()
 width = desktop.current_w
 height = desktop.current_h
+robot = utils.set_images(width, height)
 screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 # screen = pygame.display.set_mode((width, height), pygame.NOFRAME)
 pygame.display.set_caption(PROJECT_NAME)
@@ -86,8 +91,10 @@ while True:
 		error = utils.reload_addons(addons_new, lock)
 		if error == True:
 			print("Erreur de compilation avec AI code")
-			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock, pending)
+			utils.reset_addons(ADDON_PATH, last_state, observer, lock)
 			error_mode = True
+			user_input = ''
+			AI_response = message_after_recover_from_error
 			continue
 
 		# CHANGER POUR MISE A JOUR LE CODE CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -110,7 +117,7 @@ while True:
 		if event.type == pygame.QUIT:
 			utils.clean_up(observer, parent, pending)
 			## Uncomment in production
-			# utils.reset_addons(ADDON_PATH, scene1, observer, lock, pending)
+			# utils.reset_addons(ADDON_PATH, last_state, observer, lock)
 			sys.exit(0)
 		elif event.type == pygame.MOUSEBUTTONDOWN:
 			if pause_button.collidepoint(event.pos):
@@ -119,18 +126,20 @@ while True:
 			elif quit_button.collidepoint(event.pos):
 				utils.clean_up(observer, parent, pending)
 				## Uncomment in production
-				# utils.reset_addons(ADDON_PATH, scene1, observer, lock, pending)
+				# utils.reset_addons(ADDON_PATH, last_state, observer, lock)
 				sys.exit(0)
 		elif event.type == pygame.KEYDOWN:
 			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6, pygame.K_F7, pygame.K_F8, pygame.K_F9):
-				current_state = utils.handle_scene_switch(event.key, current_state, observer, pending, scenes, ADDON_PATH, context.reset_game_state, lock)
+				current_state = utils.handle_scene_switch(event.key, current_state, observer, scenes, ADDON_PATH, context.reset_game_state, lock, last_state)
+				user_input = ''
+				AI_response = getting_message
 			elif event.key in context.key_handlers:
 				try:
 					with lock:
 						context.key_handlers[event.key](current_state, screen)
 				except Exception as e:
 					print("Erreur de runtime avec AI code")
-					utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock, pending)
+					utils.reset_addons(ADDON_PATH, last_state, observer, lock)
 					error_mode = True
 					continue
 			elif event.key == pygame.K_BACKSPACE:
@@ -175,17 +184,25 @@ while True:
 			with open(ADDON_PATH, 'w') as file:
 				file.write(code)
 		if status != "OK":
+			print(status)
 			robot_state = "sad"
 
 	if not paused:
 		try:
 			with lock:
 				context.code_inject(screen, zone_surface, current_state)
+				try:
+					last_state = utils.load('addons/addons_new.py')
+				except Exception as e:
+					print("Fail to reset to prior state, reset to f1 scene instead")
+					utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock)
 		except Exception as e:
 			print("Erreur de runtime avec AI code")
 			traceback.print_exc()
-			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock, pending)
+			utils.reset_addons(ADDON_PATH, last_state, observer, lock)
 			error_mode = True
+			user_input = ''
+			AI_response = message_after_recover_from_error
 			continue
 	else:
 		text.help_box(screen, width, height, button_font, input_font, robot["question"], pause_message)

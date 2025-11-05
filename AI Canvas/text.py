@@ -152,7 +152,7 @@ def help_box(screen, width, height, button_font, input_font, robot, pause_messag
 		screen.blit(surf, (line_x, y))
 		y += int(height * 0.03)
 
-	close = "Cliquez sur PAUSE ou presses ESC pour fermer"
+	close = "Cliquez sur PAUSE ou presses ESC pour résumer le jeu"
 	close_line = input_font.render(close, True, (0, 0, 0))
 	close_x = box_x + (box_w - close_line.get_width()) // 2
 	y = box_y + box_h - int(height * 0.1)
