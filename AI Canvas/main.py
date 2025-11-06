@@ -113,6 +113,8 @@ while True:
 			# utils.reset_addons(ADDON_PATH, scene1, observer, lock, pending)
 			sys.exit(0)
 		elif event.type == pygame.MOUSEBUTTONDOWN:
+			# Gérer le scroll de la zone de modifications
+			change_logger.get_logger().handle_scroll_input(event)
 			if pause_button.collidepoint(event.pos):
 				help_box = not help_box
 				paused = help_box
@@ -121,6 +123,12 @@ while True:
 				## Uncomment in production
 				# utils.reset_addons(ADDON_PATH, scene1, observer, lock, pending)
 				sys.exit(0)
+		elif event.type == pygame.MOUSEBUTTONUP:
+			# Gérer le relâchement du scroll
+			change_logger.get_logger().handle_scroll_input(event)
+		elif event.type == pygame.MOUSEMOTION:
+			# Gérer le mouvement de la souris pour le drag de scroll
+			change_logger.get_logger().handle_scroll_input(event)
 		elif event.type == pygame.KEYDOWN:
 			if event.key in (pygame.K_F1, pygame.K_F2, pygame.K_F3, pygame.K_F4, pygame.K_F5, pygame.K_F6, pygame.K_F7, pygame.K_F8, pygame.K_F9):
 				current_state = utils.handle_scene_switch(event.key, current_state, observer, pending, scenes, ADDON_PATH, context.reset_game_state, lock)
@@ -189,9 +197,9 @@ while True:
 
 	# Code show zone
 	code_zone = pygame.Rect(draw_zone_width, 0, width - draw_zone_width, draw_zone_height)
-	pygame.draw.rect(screen, (0, 0, 0), code_zone, border_radius=int(width * 0.008))
-	pygame.draw.rect(screen, (50, 50, 50), code_zone, width=int(width * 0.002), border_radius=int(width * 0.008))
-	change_logger.draw_changes(screen)
+	pygame.draw.rect(screen, (15, 25, 60), code_zone, border_radius=int(width * 0.015))
+	pygame.draw.rect(screen, (100, 155, 155), code_zone, width=int(width * 0.004), border_radius=int(width * 0.015))
+	change_logger.draw_changes(screen, draw_zone_width, 0, width - draw_zone_width, draw_zone_height)
 
 	text.input_zone(screen, width, height, label_font, input_font, user_input)
 	text.AI_zone(screen, width, height, label_font, output_font, AI_response)
