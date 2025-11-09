@@ -1,4 +1,5 @@
 import requests
+import json
 from config import API_TOKEN, BASE_URL, PRODUCT_ID, MODEL_CODE, MODEL_TEXT, CODER_PROMPT
 from change_logger import get_logger
 
@@ -8,17 +9,40 @@ headers = {
 }
 
 def ask_ai_code(messages):
-	data = {
-		"model": MODEL_CODE,
-		"messages": messages,
-		"temperature": 0.4
-	}
-	response = requests.post(BASE_URL, headers=headers, json=data)
-	if response.status_code != 200:
-		print("❌ Error:", response.status_code, response.text)
-		return "ERROR"
+    data = {
+        "model": MODEL_CODE,
+        "messages": messages,
+        "temperature": 0.4,
+        "max_tokens": 2000,
+        "stream": True
+    }
+    response = requests.post(BASE_URL, headers=headers, json=data, stream = True)
+    if response.status_code != 200:
+        print("❌ Error:", response.status_code, response.text)
+        return "ERROR"
 
-	return response.json()["choices"][0]["message"]["content"]
+    final_text = ""
+
+    for line in response.iter_lines():
+        if not line:
+            continue
+        if line.startswith(b"data: "):
+            content = line[len(b"data: "):].decode("utf-8")
+            if content.strip() == "[DONE]":
+                break
+            try:
+                data_json = json.loads(content)
+                delta = data_json["choices"][0]["delta"]
+                if "content" in delta:
+                    text_part = delta["content"]
+                    print(text_part, end="", flush=True) 
+                    final_text += text_part
+            except Exception as e:
+                print(f"\n Stream parsing error: {e}")
+                continue
+    print("\nStream completed.\n")
+    return final_text.strip()
+    
 
 def AI_call(prompt, main, addon_path):
     
@@ -39,14 +63,25 @@ def AI_call(prompt, main, addon_path):
     if not explanation:
         explanation = "The assistant could not generate a response."
     
-    result = explanation.strip().upper()
+    result = explanation.strip()
     if result in ("INVALID", "REJECTED"):
         explanation = "Veuillez utiliser un langage respectueux." if result == "REJECTED" else "Essayez de formuler une demande plus simple ou plus claire"
         return {"status": result, "message": message}
     
     start_pos = explanation.find("#--Start--")
+    if start_pos == -1:
+        print("Missing '#--Start--' flag")
     end_pos = explanation.find("#--End--")
-    output = explanation[start_pos : end_pos + 8]
-    with open(addon_path, 'w') as file:
-        file.write(output)
+    if end_pos == -1:
+        print("Missing '#--End--'")
+    # if start_pos == -1 or end_pos == -1:
+    #     print("Missing '#--start-- or '#--End--' tags in file'")
+    #     return {"status":"ERROR", "message": explanation}
+    output = explanation[start_pos:end_pos + 8]
+    if output:
+        # print(f'explanation:\n --[{output}]--')
+        with open(addon_path, 'w') as file:
+            file.write(output)
+    else:
+        print("Missing output, file not modified")
     return {"status": result, "message": explanation}
