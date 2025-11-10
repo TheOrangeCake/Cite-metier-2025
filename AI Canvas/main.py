@@ -102,9 +102,7 @@ while True:
 			AI_response = message_after_recover_from_error
 			reloaded = False
 			continue
-
-		# CHANGER POUR MISE A JOUR LE CODE CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		change_logger.get_logger().on_file_modified()
+		change_logger.get_logger().on_file_modified(lock)
 
 	if error_mode:
 		text.error_handler(screen, label_font, height, width, robot["warning"], error_message)

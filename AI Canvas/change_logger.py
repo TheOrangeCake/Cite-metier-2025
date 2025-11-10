@@ -57,9 +57,21 @@ class ChangeLogger:
         cleaned = ' '.join(cleaned.split())
         return cleaned
 
-    def on_file_modified(self):
+    def stream_code(self, code_chunk):
+        """
+        Accepté un bout de code
+        """
+        lines = code_chunk.split("\n")
+        for line in lines:
+            cleaned = self._clean_text(line)
+            if cleaned.strip():
+                self.pending_changes.append(('add', cleaned))
+                self.total_modifications += 1
+
+    def on_file_modified(self, lock):
         """Appelé quand le fichier est modifié"""
-        current_content = self._read_file()
+        with lock:
+            current_content = self._read_file()
 
         # Calcule les différences
         diff = difflib.unified_diff(

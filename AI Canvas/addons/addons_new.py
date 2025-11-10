@@ -86,7 +86,7 @@ def custom_draw(screen, state):
 	)
 
 	pygame.draw.rect(
-		screen, (50, 255, 50),
+		screen, (255, 0, 0),
 		(state["x"], state["y"], state["width"], state["height"])
 	)
 
