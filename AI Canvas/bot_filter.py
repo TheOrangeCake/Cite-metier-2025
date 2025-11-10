@@ -68,7 +68,7 @@ def conversation_moderation(prompt):
 
 
 # ------------------- RESPONSE ANALYZER -------------------
-def response_analizer(prompt, main, addon_path):
+def response_analizer(prompt, main, addon_path, lock):
 	"""Returns ONLY the text that should appear on screen."""
 	status = conversation_moderation(prompt)
 
@@ -115,7 +115,9 @@ def response_analizer(prompt, main, addon_path):
 	start_pos = explanation.find("#--Start--")
 	end_pos = explanation.find("#--End--")
 	output = explanation[start_pos : end_pos + 8]
-	with open(addon_path, 'w') as file:
-		file.write(output)
+	
+	with lock:
+		with open(addon_path, 'w') as file:
+			file.write(output)
 	
 	return {"status": status, "message": explanation}

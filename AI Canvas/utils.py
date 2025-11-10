@@ -2,7 +2,7 @@ import sys
 import pygame
 import traceback
 import importlib
-from threading import Thread
+from threading import Thread, Lock
 from queue import Queue
 from bot_filter import response_analizer
 from watchdog.observers import Observer
@@ -36,34 +36,40 @@ def clean_up(observer, parent = None, pending = None):
 		observer.join()
 	pygame.quit()
 
-def reset_addons(path, addons_base, observer, pending=None):
+def reset_addons(path, addons_base, observer, lock, pending=None):
 	try:
-		with open(path, 'w') as file:
-			file.write(addons_base)
+		with lock:
+			with open(path, 'w', encoding='utf-8') as file:
+				file.write(addons_base)
 	except Exception as e:
 		print('Reset base addons error')
 		clean_up(observer)
 		sys.exit(1)
 
-def reload_addons(addons_module, addon_path, observer, fallback_scene):
+def reload_addons(addons_module, lock):
 	try:
-		importlib.reload(addons_module)
+		with lock:
+			importlib.reload(addons_module)
 		return False
 	except Exception:
 		return True
 
-def start_ai_thread(user_input, main_file, addon_path):
+def start_ai_thread(user_input, main_file, addon_path, lock):
 	q = Queue()
 
-	def worker(q, user_input, main_file, addon_path):
+	def worker(q, user_input, main_file, addon_path, lock):
 		try:
+<<<<<<< HEAD
 			result = AI_call(user_input, main_file, addon_path)
+=======
+			result = response_analizer(user_input, main_file, addon_path, lock)
+>>>>>>> bf6c934 (add mutex for race condition)
 			q.put(result)
 		except Exception as e:
 			traceback.print_exc()
 			q.put({"status": "error", "message": str(e)})
 
-	thread = Thread(target=worker, args=(q, user_input, main_file, addon_path), daemon=True)
+	thread = Thread(target=worker, args=(q, user_input, main_file, addon_path, lock), daemon=True)
 	thread.start()
 	return thread, q
 
@@ -87,43 +93,43 @@ def check_ai_thread(thread, queue):
 
 	return False, None, None, thread, queue
 
-def handle_scene_switch(event_key, current_state, observer, pending, scenes, addon_path, reset_game_state):
+def handle_scene_switch(event_key, current_state, observer, pending, scenes, addon_path, reset_game_state, lock):
 	new_state = current_state
 	if event_key == pygame.K_F1:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f1"], observer, pending)
+		reset_addons(addon_path, scenes["f1"], observer, lock, pending)
 		print("Load f1")
 	elif event_key == pygame.K_F2:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f2"], observer, pending)
+		reset_addons(addon_path, scenes["f2"], observer, lock, pending)
 		print("Load f2")
 	elif event_key == pygame.K_F3:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f3"], observer, pending)
+		reset_addons(addon_path, scenes["f3"], observer, lock, pending)
 		print("Load f3")
 	elif event_key == pygame.K_F4:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f4"], observer, pending)
+		reset_addons(addon_path, scenes["f4"], observer, lock, pending)
 		print("Load f4")
 	elif event_key == pygame.K_F5:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f5"], observer, pending)
+		reset_addons(addon_path, scenes["f5"], observer, lock, pending)
 		print("Load f5")
 	elif event_key == pygame.K_F6:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f6"], observer, pending)
+		reset_addons(addon_path, scenes["f6"], observer, lock, pending)
 		print("Load f6")
 	elif event_key == pygame.K_F7:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f7"], observer, pending)
+		reset_addons(addon_path, scenes["f7"], observer, lock, pending)
 		print("Load f7")
 	elif event_key == pygame.K_F8:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f8"], observer, pending)
+		reset_addons(addon_path, scenes["f8"], observer, lock, pending)
 		print("Load f8")
 	elif event_key == pygame.K_F9:
 		new_state = reset_game_state()
-		reset_addons(addon_path, scenes["f9"], observer, pending)
+		reset_addons(addon_path, scenes["f9"], observer, lock, pending)
 		print("Load f9")
 	return new_state
 
@@ -139,7 +145,7 @@ class Handler(FileSystemEventHandler):
 def start_watchdog(path):
 	handler = Handler()
 	observer = Observer()
-	observer.schedule(handler, path, recursive=False)
+	observer.schedule(handler, path, recursive=True)
 	observer.start()
 	return observer, handler
 
