@@ -49,6 +49,7 @@ def AI_call(prompt, main, addon_path):
     # get the current addons_file to send
     code_to_send = get_logger().get_previous_content()
     
+    output = ""
     message = [
     {
         "role": "system",
@@ -66,22 +67,21 @@ def AI_call(prompt, main, addon_path):
     result = explanation.strip()
     if result in ("INVALID", "REJECTED"):
         explanation = "Veuillez utiliser un langage respectueux." if result == "REJECTED" else "Essayez de formuler une demande plus simple ou plus claire"
-        return {"status": result, "message": message}
+        return {"status": result, "message": explanation, "output": output}
     
     start_pos = explanation.find("#--Start--")
-    if start_pos == -1:
-        print("Missing '#--Start--' flag")
     end_pos = explanation.find("#--End--")
-    if end_pos == -1:
-        print("Missing '#--End--'")
+    if start_pos == -1 or end_pos == -1:
+        print("Missing '#--Start--' flag or Missing '#--End--' flag")
+        result = "INVALID"
+        explanation = "Le code généré par AI n'est pas correct"
+        return {"status": result, "message": explanation, "output": output}
     # if start_pos == -1 or end_pos == -1:
     #     print("Missing '#--start-- or '#--End--' tags in file'")
     #     return {"status":"ERROR", "message": explanation}
     output = explanation[start_pos:end_pos + 8]
-    if output:
-        # print(f'explanation:\n --[{output}]--')
-        with open(addon_path, 'w') as file:
-            file.write(output)
-    else:
-        print("Missing output, file not modified")
-    return {"status": result, "message": explanation}
+    if not output:
+        result = "INVALID"
+        explanation = "Le code généré par AI n'est pas correct"
+        print("Missing output")
+    return {"status": result, "message": explanation, "output": output}
