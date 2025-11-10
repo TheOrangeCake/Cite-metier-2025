@@ -1,12 +1,14 @@
 import pygame
 import sys
 import traceback
+import time
 from threading import Thread, Lock
 from addons import addons_new
 import context
 import text
 import utils
 import change_logger
+from queue import Empty
 
 PROJECT_NAME = 'AI Canvas'
 ADDON_PATH = 'addons/addons_new.py'
@@ -76,6 +78,7 @@ error_mode = False
 pending = None
 parent = None
 reloaded = False
+last_queue_check = 0
 
 current_state = context.reset_game_state()
 draw_zone_width = int(width * 0.68)
@@ -179,16 +182,26 @@ while True:
 					user_input += event.unicode
 					AI_response = getting_message
 
-	done, result, status, code, pending, parent = utils.check_ai_thread(pending, parent)
-	if done:
-		AI_response = result
-		robot_state = "happy"
-		with lock:
-			with open(ADDON_PATH, 'w') as file:
-				file.write(code)
-		if status != "OK":
-			print(status)
-			robot_state = "sad"
+	if pending and time.time() - last_queue_check > 0.1:
+		last_queue_check = time.time()
+		try:
+			while True:
+				msg = parent.get_nowait()
+				if msg["status"] == "explanation":
+					AI_response = msg["message"]
+					robot_state = "happy"
+				elif msg["status"] == "code":
+					with lock:
+						with open(ADDON_PATH, 'w') as file:
+							file.write(msg["output"])
+					robot_state = "happy"
+					pending = None
+				elif msg["status"] == "error":
+					AI_response = msg["message"]
+					robot_state = "sad"
+					pending = None
+		except Empty:
+			pass
 
 	if not paused:
 		try:

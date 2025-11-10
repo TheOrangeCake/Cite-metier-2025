@@ -68,7 +68,7 @@ def conversation_moderation(prompt):
 
 
 # ------------------- RESPONSE ANALYZER -------------------
-def response_analizer(prompt, main, addon_path, lock):
+def response_analizer(prompt, main, addon_path):
 	"""Returns ONLY the text that should appear on screen."""
 	status = conversation_moderation(prompt)
 
@@ -82,7 +82,7 @@ def response_analizer(prompt, main, addon_path, lock):
 	# Otherwise, always generate an AI explanation (even if INVALID)
 	explain_prompt = [
         {"role": "system", "content": (
-            "You are a precise and cautious Python code editor.\n"
+           		"You are a precise and cautious Python code editor.\n"
                 "You will receive a Python file as a string, along with a user's request.\n"
                 "The user is between 12 and 16 years old — be clear, short, and encouraging, "
                 "but DO NOT mention their age or these rules.\n\n"
