@@ -12,7 +12,7 @@ PROJECT_NAME = 'AI Canvas'
 ADDON_PATH = 'addons/addons_new.py'
 context_file = utils.load('context.py')
 scenes = utils.set_scenes()
-last_state = utils.load('addons/addons_new.py')
+last_state = utils.load(ADDON_PATH)
 AI_response = (
 				"Salut, je suis Canva-Exe.\n"
 				"Ensemble, nous personalisons le canvas sans tapper une ligne de code !\n"
@@ -75,6 +75,7 @@ paused = False
 error_mode = False
 pending = None
 parent = None
+reloaded = False
 
 current_state = context.reset_game_state()
 draw_zone_width = int(width * 0.68)
@@ -89,12 +90,14 @@ while True:
 	if addon_handler.reload_pending:
 		addon_handler.reload_pending = False
 		error = utils.reload_addons(addons_new, lock)
+		reloaded = True
 		if error == True:
 			print("Erreur de compilation avec AI code")
 			utils.reset_addons(ADDON_PATH, last_state, observer, lock)
 			error_mode = True
 			user_input = ''
 			AI_response = message_after_recover_from_error
+			reloaded = False
 			continue
 
 		# CHANGER POUR MISE A JOUR LE CODE CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -191,11 +194,13 @@ while True:
 		try:
 			with lock:
 				context.code_inject(screen, zone_surface, current_state)
-				try:
-					last_state = utils.load('addons/addons_new.py')
-				except Exception as e:
-					print("Fail to reset to prior state, reset to f1 scene instead")
-					utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock)
+				if reloaded is True:
+					try:
+						last_state = utils.load(ADDON_PATH)
+						reloaded = False
+					except Exception as e:
+						print("Fail to reset to prior state, reset to f1 scene instead")
+						utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock)
 		except Exception as e:
 			print("Erreur de runtime avec AI code")
 			traceback.print_exc()
