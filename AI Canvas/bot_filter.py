@@ -68,7 +68,7 @@ def conversation_moderation(prompt):
 
 
 # ------------------- RESPONSE ANALYZER -------------------
-def response_analizer(prompt, main, addon_path, lock):
+def response_analizer(prompt, main, addon_path):
 	"""Returns ONLY the text that should appear on screen."""
 	status = conversation_moderation(prompt)
 

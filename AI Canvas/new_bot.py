@@ -8,7 +8,7 @@ headers = {
 	"Content-Type": "application/json"
 }
 
-def ask_ai_code(messages):
+def ask_ai_code(messages, only_explanation):
     data = {
         "model": MODEL_CODE,
         "messages": messages,
@@ -22,6 +22,9 @@ def ask_ai_code(messages):
         return "ERROR"
 
     final_text = ""
+    buffer = ""
+    explanation_sent = False
+    explanation_text = ""
 
     for line in response.iter_lines():
         if not line:
@@ -35,21 +38,28 @@ def ask_ai_code(messages):
                 delta = data_json["choices"][0]["delta"]
                 if "content" in delta:
                     text_part = delta["content"]
-                    print(text_part, end="", flush=True) 
+                    # print(text_part, end="", flush=True) 
                     final_text += text_part
+                    buffer += text_part
+
+                    if not explanation_sent and "#--Start--" in buffer:
+                        parts = buffer.split("#--Start--", 1)
+                        explanation_text += parts[0]
+                        if only_explanation:
+                            only_explanation(explanation_text.strip())
+                        explanation_sent = True
+                        buffer = "#--Start--" + parts[1]
+                    # if explaination_sent = True
+                        # Send this part to logger to slowly display on the right screen !!!!!!!!!!!!!!!
             except Exception as e:
                 print(f"\n Stream parsing error: {e}")
                 continue
-    print("\nStream completed.\n")
+    # print("\nStream completed.\n")
     return final_text.strip()
-    
 
-def AI_call(prompt, main, addon_path):
-    
-    # get the current addons_file to send
+def AI_call(prompt, main, addon_path, q):
     code_to_send = get_logger().get_previous_content()
-    
-    output = ""
+
     message = [
     {
         "role": "system",
@@ -60,28 +70,32 @@ def AI_call(prompt, main, addon_path):
         "content": f"User request: {prompt}\nCode to edit:\n{code_to_send}\nMain file (context):\n{main}"
     }
     ]
-    explanation = ask_ai_code(message)
-    if not explanation:
-        explanation = "The assistant could not generate a response."
-    
-    result = explanation.strip()
-    if result in ("INVALID", "REJECTED"):
-        explanation = "Veuillez utiliser un langage respectueux." if result == "REJECTED" else "Essayez de formuler une demande plus simple ou plus claire"
-        return {"status": result, "message": explanation, "output": output}
-    
+
+    def handle_explanation(text):
+        if q:
+            q.put({"status": "explanation", "message": text})
+
+    explanation = ask_ai_code(message, handle_explanation)
+    if explanation == "ERROR":
+        if q:
+            q.put({"status": "error", "message": "La requête à l'IA a échoué."})
+        return
+    elif explanation == "INVALID":
+        if q:
+            q.put({"status": "error", "message": "Essayez de formuler une demande plus simple ou plus claire."})
+        return
+    elif explanation == "REJECTED":
+        if q:
+            q.put({"status": "error", "message": "Veuillez utiliser un langage respectueux."})
+        return
+
     start_pos = explanation.find("#--Start--")
     end_pos = explanation.find("#--End--")
     if start_pos == -1 or end_pos == -1:
-        print("Missing '#--Start--' flag or Missing '#--End--' flag")
-        result = "INVALID"
-        explanation = "Le code généré par AI n'est pas correct"
-        return {"status": result, "message": explanation, "output": output}
-    # if start_pos == -1 or end_pos == -1:
-    #     print("Missing '#--start-- or '#--End--' tags in file'")
-    #     return {"status":"ERROR", "message": explanation}
+        if q:
+            q.put({"status": "error", "message": "Format de code AI invalide"})
+        return
+
     output = explanation[start_pos:end_pos + 8]
-    if not output:
-        result = "INVALID"
-        explanation = "Le code généré par AI n'est pas correct"
-        print("Missing output")
-    return {"status": result, "message": explanation, "output": output}
+    if q:
+        q.put({"status": "code", "output": output})

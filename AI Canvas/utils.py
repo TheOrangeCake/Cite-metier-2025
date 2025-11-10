@@ -59,8 +59,7 @@ def start_ai_thread(user_input, main_file, addon_path, lock):
 
 	def worker(q, user_input, main_file, addon_path, lock):
 		try:
-			result = response_analizer(user_input, main_file, addon_path, lock)
-			q.put(result)
+			AI_call(user_input, main_file, addon_path, q)
 		except Exception as e:
 			traceback.print_exc()
 			q.put({"status": "error", "message": str(e)})
@@ -68,27 +67,6 @@ def start_ai_thread(user_input, main_file, addon_path, lock):
 	thread = Thread(target=worker, args=(q, user_input, main_file, addon_path, lock), daemon=True)
 	thread.start()
 	return thread, q
-
-
-def check_ai_thread(thread, queue):
-	# Returns (is_done, AI_response, status, code, thread, queue)
-	if thread is None:
-		return False, None, None, None, None, None
-
-	if not thread.is_alive():
-		AI_response = ''
-		status = 'OK'
-		if not queue.empty():
-			output = queue.get()
-			if isinstance(output, dict):
-				status = output.get("status", "error")
-				AI_response = output.get("message", "")
-				code = output.get("output", "")
-			else:
-				AI_response = str(output)
-		return True, AI_response, status, code, None, None
-
-	return False, None, None, None, thread, queue
 
 def handle_scene_switch(event_key, current_state, observer, scenes, addon_path, reset_game_state, lock, last_state):
 	new_state = current_state
