@@ -49,8 +49,11 @@ def ask_ai_code(messages, only_explanation):
                             only_explanation(explanation_text.strip())
                         explanation_sent = True
                         buffer = "#--Start--" + parts[1]
-                    # if explaination_sent = True
-                        # Send this part to logger to slowly display on the right screen !!!!!!!!!!!!!!!
+
+                    # Send to logger to display while waiting
+                    if explanation_sent:
+                        get_logger().stream_code(text_part)
+
             except Exception as e:
                 print(f"\n Stream parsing error: {e}")
                 continue
