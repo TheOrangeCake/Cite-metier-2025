@@ -189,7 +189,7 @@ while True:
 				msg = parent.get_nowait()
 				if msg["status"] == "explanation":
 					AI_response = msg["message"]
-					robot_state = "happy"
+					robot_state = "loading"
 				elif msg["status"] == "code":
 					with lock:
 						with open(ADDON_PATH, 'w') as file:
