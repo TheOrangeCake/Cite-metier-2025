@@ -121,7 +121,7 @@ while True:
 		if event.type == pygame.QUIT:
 			utils.clean_up(observer, parent, pending)
 			## Uncomment in production
-			# utils.reset_addons(ADDON_PATH, last_state, observer, lock)
+			utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock)
 			sys.exit(0)
 		elif event.type == pygame.MOUSEBUTTONDOWN:
 			# Gérer le scroll de la zone de modifications
@@ -132,7 +132,7 @@ while True:
 			elif quit_button.collidepoint(event.pos):
 				utils.clean_up(observer, parent, pending)
 				## Uncomment in production
-				# utils.reset_addons(ADDON_PATH, last_state, observer, lock)
+				utils.reset_addons(ADDON_PATH, scenes["f1"], observer, lock)
 				sys.exit(0)
 		elif event.type == pygame.MOUSEBUTTONUP:
 			# Gérer le relâchement du scroll

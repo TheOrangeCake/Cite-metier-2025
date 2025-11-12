@@ -57,16 +57,16 @@ class ChangeLogger:
         cleaned = ' '.join(cleaned.split())
         return cleaned
 
-    def stream_code(self, code_chunk):
-        """
-        Accepté un bout de code
-        """
-        lines = code_chunk.split("\n")
-        for line in lines:
-            cleaned = self._clean_text(line)
-            if cleaned.strip():
-                self.pending_changes.append(('add', cleaned))
-                self.total_modifications += 1
+    # def stream_code(self, code_chunk):
+    #     """
+    #     Accepté un bout de code
+    #     """
+    #     lines = code_chunk.split("\n")
+    #     for line in lines:
+    #         cleaned = self._clean_text(line)
+    #         if cleaned.strip():
+    #             self.pending_changes.append(('add', cleaned))
+    #             self.total_modifications += 1
 
     def on_file_modified(self, lock):
         """Appelé quand le fichier est modifié"""
