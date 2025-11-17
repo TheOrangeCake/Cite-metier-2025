@@ -15,8 +15,8 @@ def input_zone(screen, width, height, label_font, input_font, user_input):
 	text_max_x = zone_x + zone_w - int(width * 0.05)
 	text_max_y = zone_y + zone_h - int(height * 0.07)
 
-	blit_text(screen, "Entres tes modifications:", (margin_left, zone_y + int(height * 0.02)), label_font, (60,60,60), text_max_x, 20)
-	blit_text(screen, user_input, (margin_left, zone_y + int(height * 0.06)), input_font, (0,0,0), text_max_x, text_max_y)
+	blit_text(screen, "Entres tes modifications puis presses la touche Entrée pour envoyer:", (margin_left, zone_y + int(height * 0.02)), label_font, (60,60,60), text_max_x, 20)
+	blit_text(screen, user_input, (margin_left, zone_y + int(height * 0.07)), input_font, (0,0,0), text_max_x, text_max_y)
 
 
 def AI_zone(screen, width, height, label_font, output_font, AI_output):
@@ -78,7 +78,11 @@ def bot_zone(screen, images, state, width, height):
 				images["happy"], images["heart"]
 			])
 	if bot_zone.current_image:
-		screen.blit(bot_zone.current_image, pos)
+		img_w, img_h = bot_zone.current_image.get_size()
+		# center in the box
+		pos_x = zone_x + (zone_w - img_w) // 2
+		pos_y = zone_y + (zone_h - img_h) // 2
+		screen.blit(bot_zone.current_image, (pos_x, pos_y))
 
 
 def quit_zone(screen, font, width, height):
@@ -119,7 +123,7 @@ def pause_zone(screen, font, width, height):
 	background = pygame.Rect(zone_x, total_y, zone_w, total_h)
 	pygame.draw.rect(screen, (248, 236, 255), background, border_radius=border_radius)
 
-	text = font.render("PAUSE", True, (60, 60, 60))
+	text = font.render("AIDE", True, (60, 60, 60))
 	text_rect = text.get_rect(center=background.center)
 	screen.blit(text, text_rect)
 	return background
@@ -152,7 +156,7 @@ def help_box(screen, width, height, button_font, input_font, robot, pause_messag
 		screen.blit(surf, (line_x, y))
 		y += int(height * 0.03)
 
-	close = "Cliquez sur PAUSE ou presses ESC pour résumer le jeu"
+	close = "Cliquez sur AIDE ou presses ESC pour résumer le jeu"
 	close_line = input_font.render(close, True, (0, 0, 0))
 	close_x = box_x + (box_w - close_line.get_width()) // 2
 	y = box_y + box_h - int(height * 0.1)
@@ -176,7 +180,6 @@ def blit_text(surface, text, pos, font, color, max_width, max_height):
 		y += word_height
 
 def error_handler(screen, label_font, height, width, image, error_message):
-	screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 	screen.fill((0, 0, 0))
 	img_rect = image.get_rect()
 	img_rect.center = (width // 2, height // 3)

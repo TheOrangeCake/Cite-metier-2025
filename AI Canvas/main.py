@@ -63,8 +63,8 @@ screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 pygame.display.set_caption(PROJECT_NAME)
 pygame.key.set_repeat(300, 50)
 
-label_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 28)
-input_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
+label_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 20)
+input_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 28)
 output_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 24)
 button_font = pygame.font.Font("Sniglet/Sniglet-Regular.ttf", 30)
 
@@ -233,8 +233,8 @@ while True:
 
 	# Code show zone
 	code_zone = pygame.Rect(draw_zone_width, 0, width - draw_zone_width, draw_zone_height)
-	pygame.draw.rect(screen, (15, 25, 60), code_zone, border_radius=int(width * 0.015))
-	pygame.draw.rect(screen, (100, 155, 155), code_zone, width=int(width * 0.004), border_radius=int(width * 0.015))
+	pygame.draw.rect(screen, (5, 15, 50), code_zone, border_radius=int(width * 0.015))
+	pygame.draw.rect(screen, (5, 60, 60), code_zone, width=int(width * 0.004), border_radius=int(width * 0.015))
 	change_logger.draw_changes(screen, draw_zone_width, 0, width - draw_zone_width, draw_zone_height)
 
 	text.input_zone(screen, width, height, label_font, input_font, user_input)

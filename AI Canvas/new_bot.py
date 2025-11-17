@@ -50,9 +50,9 @@ def ask_ai_code(messages, only_explanation):
                         explanation_sent = True
                         buffer = "#--Start--" + parts[1]
 
-                    # Send to logger to display while waiting
-                    # if explanation_sent:
-                    #     get_logger().stream_code(text_part)
+                    # Send to logger to display while 
+                    if explanation_sent:
+                        get_logger().stream_code(text_part)
 
             except Exception as e:
                 print(f"\n Stream parsing error: {e}")
@@ -96,7 +96,7 @@ def AI_call(prompt, main, addon_path, q):
     end_pos = explanation.find("#--End--")
     if start_pos == -1 or end_pos == -1:
         if q:
-            q.put({"status": "error", "message": "Format de code AI invalide"})
+            q.put({"status": "error", "message": "Le code d'IA contient des erreurs et n'est pas valide"})
         return
 
     output = explanation[start_pos:end_pos + 8]
