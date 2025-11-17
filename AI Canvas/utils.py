@@ -135,15 +135,15 @@ def start_watchdog(path):
 
 def set_scenes():
 	scenes = {
-		"f1": load('f1_base_game.py'),
-		"f2": load('f2_sea_scene.py'),
-		"f3": load('f3_rain_scene.py'),
-		"f4": load('f4_to_add.py'),
-		"f5": load('f5_to_add.py'),
-		"f6": load('f6_blank.py'),
-		"f7": load('f7_blank_city.py'),
-		"f8": load('f8_blank_to_add.py'),
-		"f9": load('f9_blank_to_add.py')
+		"f1": load('scenes/f1_base_game.py'),
+		"f2": load('scenes/f2_sea_scene.py'),
+		"f3": load('scenes/f3_rain_scene.py'),
+		"f4": load('scenes/f4_to_add.py'),
+		"f5": load('scenes/f5_to_add.py'),
+		"f6": load('scenes/f6_blank.py'),
+		"f7": load('scenes/f7_blank_city.py'),
+		"f8": load('scenes/f8_blank_to_add.py'),
+		"f9": load('scenes/f9_blank_to_add.py')
 	}
 	return scenes
 
