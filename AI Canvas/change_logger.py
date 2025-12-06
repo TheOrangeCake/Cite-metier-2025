@@ -87,6 +87,8 @@ class ChangeLogger:
             while '\n' in self._partial_buffer:
                 line, rest = self._partial_buffer.split('\n', 1)
                 self.lines.append((line.rstrip('\r'), False))
+                While len(self.lines) > 2000:
+                    self.lines.pop(0)
                 self._partial_buffer = rest
                 self.auto_scroll = True
 
